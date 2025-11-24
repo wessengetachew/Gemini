@@ -562,6 +562,48 @@
                             <input type="number" id="multiModEnd" min="1" max="1000" value="30" placeholder="End">
                         </div>
                     </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Multi-Mod Point Coloring</label>
+                        <select id="multiModPointColor" onchange="render()">
+                            <option value="coprime">Coprime vs Non-coprime</option>
+                            <option value="bymodulus">Color by Modulus (M)</option>
+                            <option value="byring">Color by Ring Index</option>
+                            <option value="byresidue">Color by Residue (r)</option>
+                            <option value="byinteger">Color by Integer (M+r)</option>
+                            <option value="bygcd">Color by GCD</option>
+                            <option value="density">Color by Density φ(M)/M</option>
+                            <option value="channel">Color by Farey Channel</option>
+                            <option value="primality">Prime vs Composite Moduli</option>
+                            <option value="omega">Color by ω(M)</option>
+                            <option value="bigomega">Color by Ω(M) (with multiplicity)</option>
+                            <option value="divisors">Color by # of Divisors</option>
+                            <option value="rainbow">Rainbow Spectrum</option>
+                            <option value="alternating">Alternating Pattern</option>
+                            <option value="gradient">Radial Gradient</option>
+                            <option value="heatmap">Heatmap (Inside→Outside)</option>
+                            <option value="spiral">Spiral Pattern</option>
+                            <option value="checkerboard">Checkerboard</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Multi-Mod Ring Coloring</label>
+                        <select id="multiModRingColor" onchange="render()">
+                            <option value="gold">All Gold</option>
+                            <option value="bymodulus">Color by Modulus</option>
+                            <option value="rainbow">Rainbow</option>
+                            <option value="gradient">Gradient (Inside→Outside)</option>
+                            <option value="primality">Prime vs Composite</option>
+                            <option value="omega">By ω(M) (Prime Factors)</option>
+                            <option value="density">By Density φ(M)/M</option>
+                            <option value="divisors">By # of Divisors</option>
+                            <option value="alternating">Alternating Colors</option>
+                            <option value="pulse">Pulsing Effect</option>
+                            <option value="invisible">Invisible/Hidden</option>
+                        </select>
+                    </div>
+                    
                     <div class="checkbox-group">
                         <input type="checkbox" id="showRtoRConnections" onchange="render()">
                         <label for="showRtoRConnections">Show r-to-r Connections</label>
@@ -581,9 +623,19 @@
                         <select id="connectionColorMode" onchange="render()">
                             <option value="bygap">Color by Gap</option>
                             <option value="bymod">Color by Modulus</option>
+                            <option value="byresidue">Color by Residue</option>
                             <option value="solid">Solid Color</option>
                             <option value="rainbow">Rainbow</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="pulse">Pulsing Effect</option>
+                            <option value="depth">By Connection Depth</option>
                         </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Connection Thickness <span class="value-display" id="connThickValue">0.5</span>
+                        </label>
+                        <input type="range" id="connThickness" min="0.1" max="5.0" step="0.1" value="0.5" onchange="render()">
                     </div>
                     <div class="control-group">
                         <label class="control-label">
@@ -1043,11 +1095,285 @@
             }
         }
 
+        // Get color for multi-mod points
+        function getMultiModPointColor(point, mode, totalMods) {
+            const { m, r, coprime, gcd: g, modIndex } = point;
+            
+            switch(mode) {
+                case 'coprime':
+                    return coprime ? '#00ffff' : '#ff1493';
+                    
+                case 'bymodulus':
+                    const modHue = (m / totalMods) * 360;
+                    return `hsl(${modHue}, 80%, 60%)`;
+                    
+                case 'byring':
+                    const ringHue = (modIndex / totalMods) * 360;
+                    return `hsl(${ringHue}, 80%, 60%)`;
+                    
+                case 'byresidue':
+                    const resHue = (r / m) * 360;
+                    return `hsl(${resHue}, 80%, 60%)`;
+                    
+                case 'byinteger':
+                    const intHue = ((m + r) * 37) % 360;
+                    return `hsl(${intHue}, 80%, 60%)`;
+                    
+                case 'bygcd':
+                    const gcdHue = (g * 60) % 360;
+                    return `hsl(${gcdHue}, 80%, 60%)`;
+                    
+                case 'density':
+                    const phi = eulerPhi(m);
+                    const density = phi / m;
+                    const densityHue = 240 - (density * 240); // Blue to red
+                    return `hsl(${densityHue}, 80%, 60%)`;
+                    
+                case 'channel':
+                    const channel = m / g;
+                    const channelHue = Math.log2(channel) * 40;
+                    return `hsl(${channelHue}, 80%, 60%)`;
+                    
+                case 'primality':
+                    return isPrime(m) ? '#00ff00' : '#ff6600';
+                    
+                case 'omega':
+                    const omega = Object.keys(primeFactorization(m)).length;
+                    const omegaHue = omega * 60;
+                    return `hsl(${omegaHue}, 80%, 60%)`;
+                    
+                case 'bigomega':
+                    const factors = primeFactorization(m);
+                    const bigOmega = Object.values(factors).reduce((sum, exp) => sum + exp, 0);
+                    const bigOmegaHue = bigOmega * 45;
+                    return `hsl(${bigOmegaHue}, 80%, 60%)`;
+                    
+                case 'divisors':
+                    let divCount = 0;
+                    for (let d = 1; d <= m; d++) {
+                        if (m % d === 0) divCount++;
+                    }
+                    const divHue = (divCount * 20) % 360;
+                    return `hsl(${divHue}, 80%, 60%)`;
+                    
+                case 'rainbow':
+                    const rainbowHue = ((modIndex * m + r) / (totalMods * m)) * 360;
+                    return `hsl(${rainbowHue}, 80%, 60%)`;
+                    
+                case 'alternating':
+                    return ((modIndex + r) % 2 === 0) ? '#00ffff' : '#ff1493';
+                    
+                case 'gradient':
+                    const gradHue = 200 + (modIndex / totalMods) * 160;
+                    return `hsl(${gradHue}, 80%, 60%)`;
+                    
+                case 'heatmap':
+                    const heat = modIndex / totalMods;
+                    return `hsl(${(1-heat) * 240}, 100%, 50%)`;
+                    
+                case 'spiral':
+                    const spiralHue = ((r / m) * 360 + modIndex * 30) % 360;
+                    return `hsl(${spiralHue}, 80%, 60%)`;
+                    
+                case 'checkerboard':
+                    const checker = Math.floor(r / 2) + Math.floor(modIndex / 2);
+                    return (checker % 2 === 0) ? '#00ffff' : '#ff6600';
+                    
+                default:
+                    return coprime ? '#00ffff' : '#ff1493';
+            }
+        }
+
+        // Get color for multi-mod rings
+        function getMultiModRingColor(m, modIndex, totalMods) {
+            const mode = document.getElementById('multiModRingColor').value;
+            
+            switch(mode) {
+                case 'gold':
+                    return '#ffd700';
+                    
+                case 'bymodulus':
+                    const modHue = (m / (totalMods * 2)) * 360;
+                    return `hsl(${modHue}, 70%, 60%)`;
+                    
+                case 'rainbow':
+                    const rainbowHue = (modIndex / totalMods) * 360;
+                    return `hsl(${rainbowHue}, 70%, 60%)`;
+                    
+                case 'gradient':
+                    const gradHue = 40 + (modIndex / totalMods) * 200; // Yellow to blue
+                    return `hsl(${gradHue}, 70%, 60%)`;
+                    
+                case 'primality':
+                    return isPrime(m) ? '#00ff00' : '#8b949e';
+                    
+                case 'omega':
+                    const omega = Object.keys(primeFactorization(m)).length;
+                    const omegaHue = omega * 60;
+                    return `hsl(${omegaHue}, 70%, 60%)`;
+                    
+                case 'density':
+                    const phi = eulerPhi(m);
+                    const density = phi / m;
+                    const densityHue = 120 * density; // Green scale
+                    return `hsl(${densityHue}, 70%, 60%)`;
+                    
+                case 'divisors':
+                    let divCount = 0;
+                    for (let d = 1; d <= m; d++) {
+                        if (m % d === 0) divCount++;
+                    }
+                    const divHue = (divCount * 25) % 360;
+                    return `hsl(${divHue}, 70%, 60%)`;
+                    
+                case 'alternating':
+                    return (modIndex % 2 === 0) ? '#ffd700' : '#58a6ff';
+                    
+                case 'pulse':
+                    const pulseHue = 60 + Math.sin(modIndex * 0.5) * 30;
+                    return `hsl(${pulseHue}, 70%, 60%)`;
+                    
+                case 'invisible':
+                    return 'transparent';
+                    
+                default:
+                    return '#ffd700';
+            }
+        }
+
+        // Get color for connections
+        function getConnectionColor(point, targetPoint, mode, gapSize) {
+            switch(mode) {
+                case 'bygap':
+                    return `hsl(${(gapSize * 40) % 360}, 80%, 60%)`;
+                    
+                case 'bymod':
+                    return `hsl(${(point.modIndex * 30) % 360}, 70%, 50%)`;
+                    
+                case 'byresidue':
+                    return `hsl(${(point.r / point.m * 360)}, 80%, 60%)`;
+                    
+                case 'solid':
+                    return '#58a6ff';
+                    
+                case 'rainbow':
+                    return `hsl(${(point.r / point.m * 360)}, 80%, 60%)`;
+                    
+                case 'gradient':
+                    const gradHue = 180 + point.modIndex * 10;
+                    return `hsl(${gradHue}, 70%, 50%)`;
+                    
+                case 'pulse':
+                    const pulseHue = 200 + Math.sin(point.modIndex * 0.3) * 60;
+                    return `hsl(${pulseHue}, 80%, 60%)`;
+                    
+                case 'depth':
+                    const depth = Math.abs(targetPoint.modIndex - point.modIndex);
+                    return `hsl(${depth * 60}, 80%, 60%)`;
+                    
+                default:
+                    return '#00ffff';
+            }
+        }
+
         // Toggle multi-modulus mode
         function toggleMultiMod() {
             const enabled = document.getElementById('enableMultiMod').checked;
             document.getElementById('multiModControls').style.display = enabled ? 'block' : 'none';
             render();
+        }
+
+        // Get color for multi-modulus point
+        function getMultiModPointColor(point, startMod, endMod) {
+            const mode = document.getElementById('multiModColorMode').value;
+            
+            switch(mode) {
+                case 'coprime':
+                    return point.coprime ? '#00ffff' : '#ff1493';
+                    
+                case 'bymodulus':
+                    // Color by which modulus the point belongs to
+                    const modHue = ((point.m - startMod) / (endMod - startMod)) * 360;
+                    return `hsl(${modHue}, 80%, 60%)`;
+                    
+                case 'byresidue':
+                    // Color by residue value r
+                    const resHue = (point.r / point.m) * 360;
+                    return `hsl(${resHue}, 80%, 60%)`;
+                    
+                case 'byinteger':
+                    // Color by the integer value (M + r)
+                    const intVal = point.m + point.r;
+                    const maxInt = endMod + endMod;
+                    const intHue = (intVal / maxInt) * 360;
+                    return `hsl(${intHue}, 80%, 60%)`;
+                    
+                case 'bygcd':
+                    // Color by GCD value
+                    const gcdHue = (point.gcd * 60) % 360;
+                    return `hsl(${gcdHue}, 80%, 60%)`;
+                    
+                case 'bydensity':
+                    // Color by φ(M)/M density
+                    const phi = eulerPhi(point.m);
+                    const density = phi / point.m;
+                    // Low density (near 0) = red, high density (near 1) = blue
+                    const densityHue = density * 240; // 0° to 240° (red to blue)
+                    return `hsl(${densityHue}, 80%, 60%)`;
+                    
+                case 'bychannel':
+                    // Color by which Farey channel (M/gcd)
+                    const channel = point.m / point.gcd;
+                    const channelHue = (Math.log2(channel) / Math.log2(point.m)) * 360;
+                    return `hsl(${channelHue}, 80%, 60%)`;
+                    
+                case 'byprimality':
+                    // Color by whether M is prime, semiprime, or composite
+                    if (isPrime(point.m)) {
+                        return '#00ff00'; // Green for primes
+                    } else {
+                        const factors = primeFactorization(point.m);
+                        const numFactors = Object.values(factors).reduce((a, b) => a + b, 0);
+                        if (numFactors === 2) {
+                            return '#ffff00'; // Yellow for semiprimes
+                        } else {
+                            return '#ff6600'; // Orange for composites
+                        }
+                    }
+                    
+                case 'byomega':
+                    // Color by ω(M) - number of distinct prime factors
+                    const omega = Object.keys(primeFactorization(point.m)).length;
+                    const omegaHue = (omega * 60) % 360;
+                    return `hsl(${omegaHue}, 80%, 60%)`;
+                    
+                case 'rainbow':
+                    // Rainbow by global position
+                    const globalPos = point.modIndex / (endMod - startMod);
+                    const rainbowHue = globalPos * 360;
+                    return `hsl(${rainbowHue}, 80%, 60%)`;
+                    
+                default:
+                    return point.coprime ? '#00ffff' : '#ff1493';
+            }
+        }
+
+        // Get color for connection lines
+        function getConnectionColor(p1, p2, mode, gapSize) {
+            switch(mode) {
+                case 'bygap':
+                    return `hsl(${(gapSize * 40) % 360}, 80%, 60%)`;
+                case 'bymod':
+                    return `hsl(${(p1.modIndex * 30) % 360}, 70%, 50%)`;
+                case 'byresidue':
+                    return `hsl(${(p1.r / p1.m * 360)}, 80%, 60%)`;
+                case 'solid':
+                    return '#58a6ff';
+                case 'rainbow':
+                    return `hsl(${(p1.r / p1.m * 360)}, 80%, 60%)`;
+                default:
+                    return '#00ffff';
+            }
         }
 
         // Get color for point based on mode
@@ -1359,23 +1685,28 @@
         // Render multi-modulus mode
         function renderMultiModulus() {
             const svg = document.getElementById('mainCanvas');
+            applyCanvasBackground();
+            
             const zoom = parseFloat(document.getElementById('zoom').value);
             const rotation = parseFloat(document.getElementById('rotation').value);
             const ringRotation = parseFloat(document.getElementById('ringRotation').value);
             const pointSize = parseFloat(document.getElementById('pointSize').value);
             const opacity = parseFloat(document.getElementById('opacity').value) / 100;
-            const pointColorMode = document.getElementById('pointColorMode').value;
+            const multiModPointColor = document.getElementById('multiModPointColor').value;
             const showRtoR = document.getElementById('showRtoRConnections').checked;
             const showGapConn = document.getElementById('showGapConnections').checked;
             const gapSize = parseInt(document.getElementById('gapSize').value);
             const connColorMode = document.getElementById('connectionColorMode').value;
             const connOpacity = parseFloat(document.getElementById('connOpacity').value) / 100;
+            const connThickness = parseFloat(document.getElementById('connThickness').value);
             const ringSpacing = parseFloat(document.getElementById('ringSpacing').value);
             const filterMode = document.getElementById('filterMode').value;
             const invertMode = document.getElementById('invertMode').checked;
+            const lineThick = parseFloat(document.getElementById('lineThick').value);
 
             const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
             const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
+            const totalMods = endMod - startMod + 1;
 
             const ringRotRad = (ringRotation * Math.PI) / 180;
 
@@ -1426,21 +1757,7 @@
                             line.setAttribute('y1', p1.y);
                             line.setAttribute('x2', p2.x);
                             line.setAttribute('y2', p2.y);
-                            
-                            let color = '#00ffff';
-                            switch(connColorMode) {
-                                case 'bymod':
-                                    color = `hsl(${(p1.modIndex * 30) % 360}, 70%, 50%)`;
-                                    break;
-                                case 'solid':
-                                    color = '#58a6ff';
-                                    break;
-                                case 'rainbow':
-                                    color = `hsl(${(p1.r / p1.m * 360)}, 80%, 60%)`;
-                                    break;
-                            }
-                            
-                            line.setAttribute('stroke', color);
+                            line.setAttribute('stroke', getConnectionColor(p1, p2, connColorMode, gapSize));
                             line.setAttribute('stroke-width', 0.5);
                             line.setAttribute('opacity', connOpacity);
                             mainG.appendChild(line);
@@ -1464,24 +1781,7 @@
                             line.setAttribute('y1', p1.y);
                             line.setAttribute('x2', p2.x);
                             line.setAttribute('y2', p2.y);
-                            
-                            let color = '#ffd700';
-                            switch(connColorMode) {
-                                case 'bygap':
-                                    color = `hsl(${(gapSize * 40) % 360}, 80%, 60%)`;
-                                    break;
-                                case 'bymod':
-                                    color = `hsl(${(p1.modIndex * 30) % 360}, 70%, 50%)`;
-                                    break;
-                                case 'solid':
-                                    color = '#ff0000';
-                                    break;
-                                case 'rainbow':
-                                    color = `hsl(${(p1.r / p1.m * 360)}, 80%, 60%)`;
-                                    break;
-                            }
-                            
-                            line.setAttribute('stroke', color);
+                            line.setAttribute('stroke', getConnectionColor(p1, p2, connColorMode, gapSize));
                             line.setAttribute('stroke-width', 0.8);
                             line.setAttribute('opacity', connOpacity);
                             mainG.appendChild(line);
@@ -1490,15 +1790,73 @@
                 });
             }
 
-            // Draw all points
+            // Draw rings with comprehensive coloring
+            allModuliData.forEach(modData => {
+                const ringColor = getMultiModRingColor(modData.m, modData.modIndex, totalMods);
+                if (ringColor !== 'transparent') {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', 0);
+                    circle.setAttribute('cy', 0);
+                    circle.setAttribute('r', modData.radius);
+                    circle.setAttribute('fill', 'none');
+                    circle.setAttribute('stroke', ringColor);
+                    circle.setAttribute('stroke-width', lineThick);
+                    circle.setAttribute('opacity', 0.5 * opacity);
+                    mainG.appendChild(circle);
+                }
+            });
+
+            // Draw r-to-r connections with comprehensive coloring
+            if (showRtoR) {
+                for (let i = 0; i < allModuliData.length - 1; i++) {
+                    const mod1 = allModuliData[i];
+                    const mod2 = allModuliData[i + 1];
+                    
+                    mod1.points.forEach(p1 => {
+                        const p2 = mod2.points.find(p => p.r === p1.r && p.coprime);
+                        if (p2) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', p1.x);
+                            line.setAttribute('y1', p1.y);
+                            line.setAttribute('x2', p2.x);
+                            line.setAttribute('y2', p2.y);
+                            line.setAttribute('stroke', getConnectionColor(p1, p2, connColorMode, gapSize));
+                            line.setAttribute('stroke-width', connThickness);
+                            line.setAttribute('opacity', connOpacity);
+                            mainG.appendChild(line);
+                        }
+                    });
+                }
+            }
+
+            // Draw gap connections with comprehensive coloring
+            if (showGapConn) {
+                allModuliData.forEach(modData => {
+                    modData.points.forEach(p1 => {
+                        if (!p1.coprime) return;
+                        
+                        const targetR = (p1.r + 2 * gapSize) % p1.m;
+                        const p2 = modData.points.find(p => p.r === targetR && p.coprime);
+                        
+                        if (p2) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', p1.x);
+                            line.setAttribute('y1', p1.y);
+                            line.setAttribute('x2', p2.x);
+                            line.setAttribute('y2', p2.y);
+                            line.setAttribute('stroke', getConnectionColor(p1, p2, connColorMode, gapSize));
+                            line.setAttribute('stroke-width', connThickness);
+                            line.setAttribute('opacity', connOpacity);
+                            mainG.appendChild(line);
+                        }
+                    });
+                });
+            }
+
+            // Draw all points with comprehensive coloring
             allModuliData.forEach(modData => {
                 modData.points.forEach(point => {
-                    const color = getPointColor(
-                        { ...point, ring: point.m, ringIndex: point.modIndex }, 
-                        point.m, 
-                        point.modIndex, 
-                        pointColorMode
-                    );
+                    const color = getMultiModPointColor(point, multiModPointColor, totalMods);
                     const size = point.coprime ? pointSize : pointSize * 0.7;
                     
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1913,6 +2271,11 @@
                             currentY += padding * 0.6;
                             ctx.fillText(`Total Moduli: ${endMod - startMod + 1}`, rightX, currentY);
                             currentY += padding * 0.6;
+                            
+                            const multiModColorMode = document.getElementById('multiModColorMode').value;
+                            ctx.fillText(`Point Coloring: ${multiModColorMode}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            
                             ctx.fillText(`Ring Spacing: ${ringSpacing.toFixed(1)}×`, rightX, currentY);
                             currentY += padding * 0.6;
                             ctx.fillText(`Invert Mode: ${invertMode ? 'Enabled' : 'Disabled'}`, rightX, currentY);
@@ -2314,6 +2677,10 @@
         document.getElementById('customBgColor').addEventListener('change', render);
         document.getElementById('ringColorMode').addEventListener('change', render);
         document.getElementById('customRingColor').addEventListener('change', render);
+
+        document.getElementById('connThickness').addEventListener('input', (e) => {
+            document.getElementById('connThickValue').textContent = parseFloat(e.target.value).toFixed(1);
+        });
 
         document.getElementById('gapSize').addEventListener('input', (e) => {
             document.getElementById('gapSizeValue').textContent = e.target.value;
