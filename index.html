@@ -382,12 +382,34 @@
                     <label for="showChannels">Channel Rings</label>
                 </div>
                 <div class="checkbox-group">
-                    <input type="checkbox" id="showInnerPoints" onchange="render()">
-                    <label for="showInnerPoints">Inner Ring Points</label>
+                    <input type="checkbox" id="showAllRingPoints" checked onchange="render()">
+                    <label for="showAllRingPoints">Show All Ring Points</label>
                 </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="colorInnerPoints" onchange="render()">
-                    <label for="colorInnerPoints">Color Inner Points</label>
+                <div class="control-group">
+                    <label class="control-label">Point Color Mode</label>
+                    <select id="pointColorMode" onchange="render()">
+                        <option value="coprime">Coprime vs Non-coprime</option>
+                        <option value="byring">Color by Ring</option>
+                        <option value="bygcd">Color by GCD</option>
+                        <option value="rainbow">Rainbow Spectrum</option>
+                        <option value="custom">Custom Colors</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Farey Line Color Mode</label>
+                    <select id="fareyColorMode" onchange="render()">
+                        <option value="red">Solid Red</option>
+                        <option value="gold">Gold (Classic)</option>
+                        <option value="bygcd">Color by GCD</option>
+                        <option value="bydepth">Color by Depth</option>
+                        <option value="gradient">Gradient</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        Farey Line Thickness <span class="value-display" id="fareyThickValue">1.0</span>
+                    </label>
+                    <input type="range" id="fareyThickness" min="0.1" max="5.0" step="0.1" value="1.0" onchange="render()">
                 </div>
                 <div class="control-group">
                     <label class="control-label">Constellation Highlight</label>
@@ -416,6 +438,10 @@
                     <input type="checkbox" id="showLabels" onchange="render()">
                     <label for="showLabels">Show Point Labels</label>
                 </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="labelAllRings" onchange="render()">
+                    <label for="labelAllRings">Label All Rings</label>
+                </div>
                 <div class="control-group">
                     <label class="control-label">Label Mode</label>
                     <select id="labelMode" onchange="render()">
@@ -434,32 +460,21 @@
                 </div>
                 <div class="control-group">
                     <label class="control-label">
-                        Label Distance <span class="value-display" id="labelDistValue">1.15</span>
+                        Label Distance <span class="value-display" id="labelDistValue">1.25</span>
                     </label>
-                    <input type="range" id="labelDist" min="1.0" max="2.0" step="0.05" value="1.15" onchange="render()">
+                    <input type="range" id="labelDist" min="1.0" max="2.5" step="0.05" value="1.25" onchange="render()">
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="labelCoprimeOnly" onchange="render()">
                     <label for="labelCoprimeOnly">Label Coprimes Only</label>
                 </div>
                 <div class="control-group">
-                    <label class="control-label">Label Every Nth Point</label>
+                    <label class="control-label">Label Every Nth Point (Outer Ring)</label>
                     <input type="number" id="labelEveryN" min="1" max="100" value="1" onchange="render()">
                 </div>
-            </div>
-
-            <!-- COLOR SCHEME -->
-            <div class="control-section">
-                <h3>Color Scheme</h3>
                 <div class="control-group">
-                    <select id="colorScheme" onchange="render()">
-                        <option value="coprime">Coprime vs Non-coprime</option>
-                        <option value="smallest">Smallest Prime Factor</option>
-                        <option value="largest">Largest Prime Factor</option>
-                        <option value="gcd">GCD Value</option>
-                        <option value="channel">Channel Depth</option>
-                        <option value="rainbow">Rainbow Spectrum</option>
-                    </select>
+                    <label class="control-label">Label Every Nth Point (Inner Rings)</label>
+                    <input type="number" id="labelEveryNInner" min="1" max="100" value="1" onchange="render()">
                 </div>
             </div>
 
@@ -474,9 +489,19 @@
                 </div>
                 <div class="control-group">
                     <label class="control-label">
-                        Rotation <span class="value-display" id="rotationValue">0</span>°
+                        Global Rotation <span class="value-display" id="rotationValue">0</span>°
                     </label>
                     <input type="range" id="rotation" min="0" max="360" value="0" onchange="render()">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        Per-Ring Rotation <span class="value-display" id="ringRotValue">0.0</span>°
+                    </label>
+                    <input type="range" id="ringRotation" min="0" max="720" step="0.5" value="0" onchange="render()">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Per-Ring Rotation (Manual)</label>
+                    <input type="number" id="ringRotInput" min="0" max="3600" step="1" value="0">
                 </div>
                 <div class="control-group">
                     <label class="control-label">
@@ -629,32 +654,47 @@
             };
         }
 
-        // Get color for residue
-        function getColor(residue, scheme) {
-            const { r, coprime, gcd: g, channel } = residue;
+        // Get color for point based on mode
+        function getPointColor(residue, ring, ringIndex, mode) {
+            const { r, coprime, gcd: g } = residue;
             
-            switch(scheme) {
+            switch(mode) {
                 case 'coprime':
                     return coprime ? '#00ffff' : '#ff1493';
-                case 'gcd':
+                case 'byring':
+                    const ringHue = (ringIndex * 40) % 360;
+                    return `hsl(${ringHue}, 80%, 60%)`;
+                case 'bygcd':
                     const gcdHue = (g * 60) % 360;
                     return `hsl(${gcdHue}, 80%, 60%)`;
-                case 'channel':
-                    const depth = Math.log2(channel);
-                    const channelHue = 200 + depth * 30;
-                    return `hsl(${channelHue}, 80%, 60%)`;
                 case 'rainbow':
-                    const hue = (r / M) * 360;
+                    const hue = (r / ring) * 360;
                     return `hsl(${hue}, 80%, 60%)`;
-                case 'smallest':
-                case 'largest':
-                    const factors = primeFactorization(g > 1 ? g : M);
-                    const primes = Object.keys(factors).map(Number);
-                    const prime = scheme === 'smallest' ? Math.min(...primes) : Math.max(...primes);
-                    const primeHue = (prime * 37) % 360;
-                    return `hsl(${primeHue}, 80%, 60%)`;
+                case 'custom':
+                    if (coprime) return '#00ffff';
+                    return `hsl(${(ringIndex * 30) % 360}, 70%, 50%)`;
                 default:
                     return coprime ? '#00ffff' : '#ff1493';
+            }
+        }
+
+        // Get color for Farey line
+        function getFareyLineColor(sourceRes, targetRingIndex, mode) {
+            switch(mode) {
+                case 'red':
+                    return '#ff0000';
+                case 'gold':
+                    return '#ffd700';
+                case 'bygcd':
+                    const gcdHue = (sourceRes.gcd * 60) % 360;
+                    return `hsl(${gcdHue}, 80%, 60%)`;
+                case 'bydepth':
+                    const depthHue = 200 + targetRingIndex * 20;
+                    return `hsl(${depthHue}, 80%, 60%)`;
+                case 'gradient':
+                    return '#ff6b6b';
+                default:
+                    return '#ff0000';
             }
         }
 
@@ -667,28 +707,48 @@
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const rotation = parseFloat(document.getElementById('rotation').value);
+            const ringRotation = parseFloat(document.getElementById('ringRotation').value);
             const lineThick = parseFloat(document.getElementById('lineThick').value);
             const pointSize = parseFloat(document.getElementById('pointSize').value);
             const opacity = parseFloat(document.getElementById('opacity').value) / 100;
             const showProjections = document.getElementById('showProjections').checked;
             const showChannels = document.getElementById('showChannels').checked;
-            const showInnerPoints = document.getElementById('showInnerPoints').checked;
-            const colorScheme = document.getElementById('colorScheme').value;
+            const showAllRingPoints = document.getElementById('showAllRingPoints').checked;
+            const pointColorMode = document.getElementById('pointColorMode').value;
+            const fareyColorMode = document.getElementById('fareyColorMode').value;
+            const fareyThickness = parseFloat(document.getElementById('fareyThickness').value);
             const showLabels = document.getElementById('showLabels').checked;
+            const labelAllRings = document.getElementById('labelAllRings').checked;
             const labelMode = document.getElementById('labelMode').value;
             const labelSize = parseFloat(document.getElementById('labelSize').value);
             const labelDist = parseFloat(document.getElementById('labelDist').value);
             const labelCoprimeOnly = document.getElementById('labelCoprimeOnly').checked;
             const labelEveryN = parseInt(document.getElementById('labelEveryN').value);
+            const labelEveryNInner = parseInt(document.getElementById('labelEveryNInner').value);
             const filterMode = document.getElementById('filterMode').value;
+
+            // Convert ring rotation to radians
+            const ringRotRad = (ringRotation * Math.PI) / 180;
 
             // Create main group with transform
             const mainG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             mainG.setAttribute('transform', `scale(${zoom}) rotate(${rotation})`);
 
-            // Draw channel rings
+            // Build ring structure: for each divisor of M, create a ring
+            const divisors = [];
+            for (let d = 1; d <= M; d++) {
+                if (M % d === 0) divisors.push(d);
+            }
+            
+            const sortedDivisors = [...divisors].sort((a, b) => a - b);
+            const ringIndexMap = {};
+            sortedDivisors.forEach((d, idx) => {
+                ringIndexMap[d] = idx;
+            });
+
+            // Draw channel rings with per-ring rotation
             if (showChannels) {
-                currentData.divisors.forEach(d => {
+                sortedDivisors.forEach((d, ringIndex) => {
                     const radius = 400 * (d / M);
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     circle.setAttribute('cx', 0);
@@ -702,71 +762,135 @@
                 });
             }
 
-            // Draw outer circle
-            const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            outerCircle.setAttribute('cx', 0);
-            outerCircle.setAttribute('cy', 0);
-            outerCircle.setAttribute('r', 400);
-            outerCircle.setAttribute('fill', 'none');
-            outerCircle.setAttribute('stroke', '#58a6ff');
-            outerCircle.setAttribute('stroke-width', lineThick * 2);
-            outerCircle.setAttribute('opacity', opacity);
-            mainG.appendChild(outerCircle);
+            // Calculate all points on all rings
+            const allRingPoints = [];
+            sortedDivisors.forEach((divisor, ringIndex) => {
+                const radius = 400 * (divisor / M);
+                const ringRotationAngle = ringRotRad * ringIndex;
+                
+                for (let k = 0; k < divisor; k++) {
+                    const baseAngle = -Math.PI / 2 + (2 * Math.PI * k / divisor);
+                    const angle = baseAngle + ringRotationAngle;
+                    const x = radius * Math.cos(angle);
+                    const y = radius * Math.sin(angle);
+                    
+                    const g = gcd(k, divisor);
+                    const coprime = g === 1;
+                    
+                    allRingPoints.push({
+                        ring: divisor,
+                        ringIndex,
+                        r: k,
+                        x, y,
+                        angle,
+                        baseAngle,
+                        radius,
+                        gcd: g,
+                        coprime,
+                        channel: divisor / g
+                    });
+                }
+            });
 
-            // Draw projection lines
+            // Draw Farey projection lines first (so they're behind points)
             if (showProjections) {
-                currentData.residues.forEach(res => {
-                    if (res.gcd > 1) {
-                        const targetRadius = 400 * (res.channel / M);
-                        const targetAngle = res.angle;
-                        const targetX = targetRadius * Math.cos(targetAngle);
-                        const targetY = targetRadius * Math.sin(targetAngle);
+                allRingPoints.forEach(point => {
+                    if (point.gcd > 1) {
+                        // Find target ring (channel)
+                        const targetRing = point.channel;
+                        const targetRingIndex = ringIndexMap[targetRing];
                         
-                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        line.setAttribute('x1', res.x);
-                        line.setAttribute('y1', res.y);
-                        line.setAttribute('x2', targetX);
-                        line.setAttribute('y2', targetY);
-                        line.setAttribute('stroke', '#ffd700');
-                        line.setAttribute('stroke-width', lineThick * 0.5);
-                        line.setAttribute('opacity', 0.4 * opacity);
-                        mainG.appendChild(line);
+                        if (targetRingIndex !== undefined) {
+                            const targetRadius = 400 * (targetRing / M);
+                            const targetRotation = ringRotRad * targetRingIndex;
+                            const targetAngle = point.baseAngle + targetRotation;
+                            const targetX = targetRadius * Math.cos(targetAngle);
+                            const targetY = targetRadius * Math.sin(targetAngle);
+                            
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', point.x);
+                            line.setAttribute('y1', point.y);
+                            line.setAttribute('x2', targetX);
+                            line.setAttribute('y2', targetY);
+                            line.setAttribute('stroke', getFareyLineColor(point, targetRingIndex, fareyColorMode));
+                            line.setAttribute('stroke-width', fareyThickness);
+                            line.setAttribute('opacity', 0.5 * opacity);
+                            mainG.appendChild(line);
+                        }
                     }
                 });
             }
 
-            // Draw residues
-            currentData.residues.forEach((res, idx) => {
-                // Apply filter
-                if (filterMode === 'coprime' && !res.coprime) return;
-                if (filterMode === 'noncoprime' && res.coprime) return;
+            // Draw all points on all rings
+            if (showAllRingPoints) {
+                allRingPoints.forEach(point => {
+                    // Apply filter only to outer ring
+                    if (point.ring === M) {
+                        if (filterMode === 'coprime' && !point.coprime) return;
+                        if (filterMode === 'noncoprime' && point.coprime) return;
+                    }
 
-                const color = getColor(res, colorScheme);
-                const size = res.coprime ? pointSize : pointSize * 0.7;
-                
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', res.x);
-                circle.setAttribute('cy', res.y);
-                circle.setAttribute('r', size);
-                circle.setAttribute('fill', color);
-                circle.setAttribute('opacity', opacity);
-                mainG.appendChild(circle);
+                    const color = getPointColor(point, point.ring, point.ringIndex, pointColorMode);
+                    const size = point.coprime ? pointSize : pointSize * 0.7;
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x);
+                    circle.setAttribute('cy', point.y);
+                    circle.setAttribute('r', size);
+                    circle.setAttribute('fill', color);
+                    circle.setAttribute('opacity', opacity);
+                    mainG.appendChild(circle);
+                });
+            }
 
-                // Labels
-                if (showLabels && idx % labelEveryN === 0) {
-                    if (labelCoprimeOnly && !res.coprime) return;
+            // Draw labels
+            if (showLabels) {
+                allRingPoints.forEach((point, idx) => {
+                    // Decide if we should label this point
+                    const isOuterRing = point.ring === M;
+                    const shouldLabelRing = isOuterRing || labelAllRings;
+                    
+                    if (!shouldLabelRing) return;
+                    
+                    // Apply Nth point filter
+                    const nthFilter = isOuterRing ? labelEveryN : labelEveryNInner;
+                    if (point.r % nthFilter !== 0) return;
+                    
+                    // Apply coprime filter
+                    if (labelCoprimeOnly && !point.coprime) return;
+                    
+                    // Apply general filter only to outer ring
+                    if (isOuterRing) {
+                        if (filterMode === 'coprime' && !point.coprime) return;
+                        if (filterMode === 'noncoprime' && point.coprime) return;
+                    }
                     
                     let labelText = '';
                     switch(labelMode) {
-                        case 'residue': labelText = res.r.toString(); break;
-                        case 'fraction': labelText = `${res.r}/${M}`; break;
-                        case 'gcd': labelText = res.gcd.toString(); break;
-                        case 'channel': labelText = res.channel.toString(); break;
-                        case 'angle': labelText = Math.round(((res.angle + Math.PI/2) * 180 / Math.PI) % 360) + '°'; break;
+                        case 'residue': 
+                            labelText = point.r.toString(); 
+                            break;
+                        case 'fraction': 
+                            const reduced = gcd(point.r, point.ring);
+                            const num = point.r / reduced;
+                            const den = point.ring / reduced;
+                            labelText = den === 1 ? num.toString() : `${num}/${den}`;
+                            break;
+                        case 'gcd': 
+                            labelText = point.gcd.toString(); 
+                            break;
+                        case 'channel': 
+                            labelText = point.channel.toString(); 
+                            break;
+                        case 'angle': 
+                            labelText = Math.round(((point.baseAngle + Math.PI/2) * 180 / Math.PI) % 360) + '°'; 
+                            break;
                     }
                     
-                    const labelX = res.x + Math.cos(res.angle + Math.PI/2) * labelDist * 20;
-                    const labelY = res.y + Math.sin(res.angle + Math.PI/2) * labelDist * 20;
+                    // Position label OUTSIDE the ring
+                    const labelRadius = point.radius + (labelDist * 20);
+                    const labelX = labelRadius * Math.cos(point.angle);
+                    const labelY = labelRadius * Math.sin(point.angle);
                     
                     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                     text.setAttribute('x', labelX);
@@ -778,8 +902,8 @@
                     text.setAttribute('opacity', opacity);
                     text.textContent = labelText;
                     mainG.appendChild(text);
-                }
-            });
+                });
+            }
 
             svg.appendChild(mainG);
             updateStatistics();
@@ -923,6 +1047,23 @@
 
         document.getElementById('rotation').addEventListener('input', (e) => {
             document.getElementById('rotationValue').textContent = e.target.value;
+        });
+
+        document.getElementById('ringRotation').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            document.getElementById('ringRotValue').textContent = value.toFixed(1);
+            document.getElementById('ringRotInput').value = Math.round(value);
+        });
+
+        document.getElementById('ringRotInput').addEventListener('change', (e) => {
+            const value = Math.max(0, Math.min(3600, parseFloat(e.target.value) || 0));
+            document.getElementById('ringRotation').value = value;
+            document.getElementById('ringRotValue').textContent = value.toFixed(1);
+            render();
+        });
+
+        document.getElementById('fareyThickness').addEventListener('input', (e) => {
+            document.getElementById('fareyThickValue').textContent = parseFloat(e.target.value).toFixed(1);
         });
 
         document.getElementById('lineThick').addEventListener('input', (e) => {
