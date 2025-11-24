@@ -11,24 +11,56 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #1a1f3a;
+            --bg-tertiary: #0f1419;
+            --bg-quaternary: #161b22;
+            --text-primary: #e8e8e8;
+            --text-secondary: #c9d1d9;
+            --text-tertiary: #8b949e;
+            --border-color: #30363d;
+            --accent-color: #58a6ff;
+            --accent-hover: #79c0ff;
+            --input-bg: #0d1117;
+            --control-bg: rgba(22, 27, 34, 0.8);
+        }
+
+        body.light-mode {
+            --bg-primary: #f6f8fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e8eaed;
+            --bg-quaternary: #ffffff;
+            --text-primary: #1f2328;
+            --text-secondary: #2d333b;
+            --text-tertiary: #656d76;
+            --border-color: #d0d7de;
+            --accent-color: #0969da;
+            --accent-hover: #0550ae;
+            --input-bg: #ffffff;
+            --control-bg: rgba(255, 255, 255, 0.9);
+        }
+
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0a0e27;
-            color: #e8e8e8;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
             overflow-x: hidden;
+            transition: all 0.3s ease;
         }
 
         .header {
-            background: linear-gradient(135deg, #1a1f3a 0%, #2a2f4a 100%);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-quaternary) 100%);
             padding: 20px 40px;
-            border-bottom: 2px solid #58a6ff;
+            border-bottom: 2px solid var(--accent-color);
             text-align: center;
         }
 
         .header h1 {
             font-size: 1.8rem;
             font-weight: 300;
-            color: #79c0ff;
+            color: var(--accent-hover);
             letter-spacing: -0.5px;
         }
 
@@ -45,7 +77,15 @@
             position: relative;
             display: flex;
             flex-direction: column;
+            transition: background 0.3s ease;
         }
+
+        .viz-section.canvas-bg-white { background: #ffffff; }
+        .viz-section.canvas-bg-black { background: #000000; }
+        .viz-section.canvas-bg-darkgray { background: #2a2a2a; }
+        .viz-section.canvas-bg-lightgray { background: #e0e0e0; }
+        .viz-section.canvas-bg-navy { background: #001f3f; }
+        .viz-section.canvas-bg-transparent { background: transparent; }
 
         .viz-info {
             position: absolute;
@@ -54,20 +94,25 @@
             background: rgba(26, 31, 58, 0.95);
             padding: 15px 20px;
             border-radius: 8px;
-            border: 1px solid #58a6ff;
+            border: 1px solid var(--accent-color);
             z-index: 10;
+        }
+
+        body.light-mode .viz-info {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border-color);
         }
 
         .viz-info h3 {
             font-size: 1.2rem;
-            color: #79c0ff;
+            color: var(--accent-hover);
             margin-bottom: 5px;
             font-weight: 400;
         }
 
         .viz-info p {
             font-size: 0.9rem;
-            color: #8b949e;
+            color: var(--text-tertiary);
             margin: 3px 0;
         }
 
@@ -85,15 +130,15 @@
         }
 
         .controls-panel {
-            background: linear-gradient(180deg, #0f1419 0%, #161b22 100%);
+            background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-quaternary) 100%);
             padding: 20px;
             overflow-y: auto;
-            border-left: 1px solid #30363d;
+            border-left: 1px solid var(--border-color);
         }
 
         .control-section {
-            background: rgba(22, 27, 34, 0.8);
-            border: 1px solid #30363d;
+            background: var(--control-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
@@ -101,10 +146,10 @@
 
         .control-section h3 {
             font-size: 1rem;
-            color: #79c0ff;
+            color: var(--accent-hover);
             margin-bottom: 15px;
             font-weight: 500;
-            border-bottom: 1px solid #30363d;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 8px;
         }
 
@@ -115,14 +160,14 @@
         .control-label {
             display: block;
             font-size: 0.85rem;
-            color: #8b949e;
+            color: var(--text-tertiary);
             margin-bottom: 6px;
         }
 
         input[type="range"] {
             width: 100%;
             height: 6px;
-            background: #30363d;
+            background: var(--border-color);
             border-radius: 3px;
             outline: none;
             -webkit-appearance: none;
@@ -132,30 +177,30 @@
             -webkit-appearance: none;
             width: 16px;
             height: 16px;
-            background: #58a6ff;
+            background: var(--accent-color);
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
-            background: #79c0ff;
+            background: var(--accent-hover);
             transform: scale(1.2);
         }
 
-        input[type="number"], input[type="text"], select {
+        input[type="number"], input[type="text"], input[type="color"], select {
             width: 100%;
             padding: 8px 12px;
-            background: #0d1117;
-            border: 1px solid #30363d;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            color: #c9d1d9;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             outline: none;
         }
 
         input[type="number"]:focus, input[type="text"]:focus, select:focus {
-            border-color: #58a6ff;
+            border-color: var(--accent-color);
         }
 
         .preset-buttons {
@@ -607,6 +652,45 @@
             <div class="control-section">
                 <h3>View Controls</h3>
                 <div class="control-group">
+                    <label class="control-label">Theme</label>
+                    <select id="themeMode" onchange="changeTheme()">
+                        <option value="dark">Dark Mode</option>
+                        <option value="light">Light Mode</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Canvas Background</label>
+                    <select id="canvasBg" onchange="render()">
+                        <option value="black">Black</option>
+                        <option value="white">White</option>
+                        <option value="darkgray">Dark Gray</option>
+                        <option value="lightgray">Light Gray</option>
+                        <option value="navy">Navy</option>
+                        <option value="transparent">Transparent</option>
+                        <option value="custom">Custom Color</option>
+                    </select>
+                </div>
+                <div class="control-group" id="customBgGroup" style="display: none;">
+                    <label class="control-label">Custom Background Color</label>
+                    <input type="color" id="customBgColor" value="#000000" onchange="render()">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Ring Color Mode</label>
+                    <select id="ringColorMode" onchange="render()">
+                        <option value="gold">Gold (Default)</option>
+                        <option value="blue">Blue</option>
+                        <option value="cyan">Cyan</option>
+                        <option value="white">White</option>
+                        <option value="gray">Gray</option>
+                        <option value="rainbow">Rainbow (by index)</option>
+                        <option value="custom">Custom Color</option>
+                    </select>
+                </div>
+                <div class="control-group" id="customRingGroup" style="display: none;">
+                    <label class="control-label">Custom Ring Color</label>
+                    <input type="color" id="customRingColor" value="#ffd700" onchange="render()">
+                </div>
+                <div class="control-group">
                     <label class="control-label">
                         Zoom <span class="value-display" id="zoomValue">1.00</span>×
                     </label>
@@ -875,6 +959,90 @@
             };
         }
 
+        // Theme management
+        function changeTheme() {
+            const theme = document.getElementById('themeMode').value;
+            if (theme === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+        }
+
+        // Get canvas background color
+        function getCanvasBackground() {
+            const bg = document.getElementById('canvasBg').value;
+            const customBgGroup = document.getElementById('customBgGroup');
+            
+            if (bg === 'custom') {
+                customBgGroup.style.display = 'block';
+                return document.getElementById('customBgColor').value;
+            } else {
+                customBgGroup.style.display = 'none';
+            }
+            
+            const colors = {
+                'black': '#000000',
+                'white': '#ffffff',
+                'darkgray': '#2a2a2a',
+                'lightgray': '#e0e0e0',
+                'navy': '#001f3f',
+                'transparent': 'transparent'
+            };
+            return colors[bg] || '#000000';
+        }
+
+        // Get ring color
+        function getRingColor(ringIndex, totalRings) {
+            const mode = document.getElementById('ringColorMode').value;
+            const customRingGroup = document.getElementById('customRingGroup');
+            
+            if (mode === 'custom') {
+                customRingGroup.style.display = 'block';
+                return document.getElementById('customRingColor').value;
+            } else {
+                customRingGroup.style.display = 'none';
+            }
+            
+            switch(mode) {
+                case 'gold':
+                    return '#ffd700';
+                case 'blue':
+                    return '#58a6ff';
+                case 'cyan':
+                    return '#00ffff';
+                case 'white':
+                    return '#ffffff';
+                case 'gray':
+                    return '#8b949e';
+                case 'rainbow':
+                    const hue = (ringIndex / totalRings) * 360;
+                    return `hsl(${hue}, 70%, 60%)`;
+                default:
+                    return '#ffd700';
+            }
+        }
+
+        // Apply canvas background
+        function applyCanvasBackground() {
+            const vizSection = document.querySelector('.viz-section');
+            const bg = document.getElementById('canvasBg').value;
+            
+            // Remove all canvas-bg classes
+            vizSection.classList.remove('canvas-bg-white', 'canvas-bg-black', 'canvas-bg-darkgray', 
+                                       'canvas-bg-lightgray', 'canvas-bg-navy', 'canvas-bg-transparent');
+            
+            if (bg === 'custom') {
+                const customColor = document.getElementById('customBgColor').value;
+                vizSection.style.background = customColor;
+            } else if (bg !== 'transparent') {
+                vizSection.classList.add(`canvas-bg-${bg}`);
+                vizSection.style.background = '';
+            } else {
+                vizSection.style.background = 'transparent';
+            }
+        }
+
         // Toggle multi-modulus mode
         function toggleMultiMod() {
             const enabled = document.getElementById('enableMultiMod').checked;
@@ -947,6 +1115,8 @@
         // Render single modulus mode
         function renderSingleModulus() {
             const svg = document.getElementById('mainCanvas');
+            applyCanvasBackground();
+            
             const zoom = parseFloat(document.getElementById('zoom').value);
             const rotation = parseFloat(document.getElementById('rotation').value);
             const ringRotation = parseFloat(document.getElementById('ringRotation').value);
@@ -987,7 +1157,7 @@
                 ringIndexMap[d] = idx;
             });
 
-            // Draw channel rings
+            // Draw channel rings with gold color by default
             if (showChannels) {
                 sortedDivisors.forEach((d, ringIndex) => {
                     const radius = invertMode ? 400 * (M / d) : 400 * (d / M);
@@ -996,7 +1166,7 @@
                     circle.setAttribute('cy', 0);
                     circle.setAttribute('r', radius);
                     circle.setAttribute('fill', 'none');
-                    circle.setAttribute('stroke', '#30363d');
+                    circle.setAttribute('stroke', getRingColor(ringIndex, sortedDivisors.length));
                     circle.setAttribute('stroke-width', lineThick);
                     circle.setAttribute('opacity', 0.5 * opacity);
                     mainG.appendChild(circle);
@@ -1607,6 +1777,7 @@
             const resolution = parseInt(document.getElementById('exportRes').value);
             const withLegend = document.getElementById('exportWithLegend').checked;
             const withTitle = document.getElementById('exportWithTitle').checked;
+            const multiModEnabled = document.getElementById('enableMultiMod').checked;
             
             // Create canvas for export
             const canvas = document.createElement('canvas');
@@ -1622,8 +1793,9 @@
                 canvas.height = Math.round(resolution * 1.1);
             }
             
-            // Fill black background
-            ctx.fillStyle = '#000000';
+            // Fill background based on canvas background setting
+            const canvasBgColor = getCanvasBackground();
+            ctx.fillStyle = canvasBgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Get current SVG
@@ -1637,18 +1809,24 @@
             
             img.onload = function() {
                 if (!withTitle && !withLegend) {
-                    // Simple export: just M and visualization
+                    // Simple export: just label and visualization
                     const vizSize = resolution * 0.85;
                     const vizX = (canvas.width - vizSize) / 2;
                     const vizY = resolution * 0.1;
                     
                     ctx.drawImage(img, vizX, vizY, vizSize, vizSize);
                     
-                    // Add M label at top
+                    // Add label at top
                     ctx.font = `${resolution * 0.04}px Arial`;
                     ctx.fillStyle = '#79c0ff';
                     ctx.textAlign = 'center';
-                    ctx.fillText(`M = ${M}`, canvas.width / 2, resolution * 0.05);
+                    if (multiModEnabled) {
+                        const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
+                        const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
+                        ctx.fillText(`Multi-Modulus: M = ${startMod} to ${endMod}`, canvas.width / 2, resolution * 0.05);
+                    } else {
+                        ctx.fillText(`M = ${M}`, canvas.width / 2, resolution * 0.05);
+                    }
                     
                 } else {
                     // Full professional export
@@ -1659,13 +1837,18 @@
                     // TITLE at top
                     if (withTitle) {
                         ctx.font = `bold ${resolution * 0.025}px Arial`;
-                        ctx.fillStyle = '#ffffff';
+                        ctx.fillStyle = canvasBgColor === '#ffffff' ? '#1f2328' : '#ffffff';
                         ctx.textAlign = 'center';
-                        ctx.fillText('Modular Reduction Projection Explorer', canvas.width / 2, padding * 1.5);
+                        
+                        if (multiModEnabled) {
+                            ctx.fillText('Multi-Modulus Projection Explorer', canvas.width / 2, padding * 1.5);
+                        } else {
+                            ctx.fillText('Modular Reduction Projection Explorer', canvas.width / 2, padding * 1.5);
+                        }
                         
                         // Timestamp
                         ctx.font = `${resolution * 0.012}px Arial`;
-                        ctx.fillStyle = '#8b949e';
+                        ctx.fillStyle = canvasBgColor === '#ffffff' ? '#656d76' : '#8b949e';
                         const now = new Date();
                         ctx.fillText(now.toLocaleString(), canvas.width / 2, padding * 2.3);
                     }
@@ -1678,160 +1861,333 @@
                     const vizY = titleHeight + (canvas.height - titleHeight - vizSize) / 2;
                     ctx.drawImage(img, vizX, vizY, vizSize, vizSize);
                     
-                    // Add M label on visualization
+                    // Add label on visualization
                     ctx.font = `${resolution * 0.02}px Arial`;
                     ctx.fillStyle = '#79c0ff';
                     ctx.textAlign = 'center';
-                    ctx.fillText(`Modulus M = ${M}`, vizX + vizSize / 2, vizY - padding * 0.5);
+                    if (multiModEnabled) {
+                        const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
+                        const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
+                        ctx.fillText(`Moduli: M = ${startMod} to ${endMod}`, vizX + vizSize / 2, vizY - padding * 0.5);
+                    } else {
+                        ctx.fillText(`Modulus M = ${M}`, vizX + vizSize / 2, vizY - padding * 0.5);
+                    }
                     
                     // RIGHT PANEL - Legend and Stats
                     if (withLegend) {
                         const rightX = leftPanel + padding;
                         let currentY = titleHeight + padding;
+                        const textColor = canvasBgColor === '#ffffff' ? '#1f2328' : '#c9d1d9';
+                        const headingColor = canvasBgColor === '#ffffff' ? '#0969da' : '#79c0ff';
+                        const mutedColor = canvasBgColor === '#ffffff' ? '#656d76' : '#8b949e';
                         
-                        // CONFIGURATION section
-                        ctx.font = `bold ${resolution * 0.018}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
-                        ctx.textAlign = 'left';
-                        ctx.fillText('CONFIGURATION', rightX, currentY);
-                        currentY += padding * 0.8;
-                        
-                        // Draw underline
-                        ctx.strokeStyle = '#30363d';
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.moveTo(rightX, currentY);
-                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
-                        ctx.stroke();
-                        currentY += padding * 0.8;
-                        
-                        ctx.font = `${resolution * 0.013}px Arial`;
-                        ctx.fillStyle = '#c9d1d9';
-                        
-                        ctx.fillText(`Modulus M = ${M}`, rightX, currentY);
-                        currentY += padding * 0.6;
-                        ctx.fillText(`Prime Factorization: ${formatPrimeFactorization(M)}`, rightX, currentY);
-                        currentY += padding * 0.6;
-                        
-                        const pointColorMode = document.getElementById('pointColorMode').value;
-                        ctx.fillText(`Color Scheme: ${pointColorMode}`, rightX, currentY);
-                        currentY += padding * 1.2;
-                        
-                        // STATISTICS section
-                        ctx.font = `bold ${resolution * 0.018}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
-                        ctx.fillText('STATISTICS', rightX, currentY);
-                        currentY += padding * 0.8;
-                        
-                        ctx.strokeStyle = '#30363d';
-                        ctx.beginPath();
-                        ctx.moveTo(rightX, currentY);
-                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
-                        ctx.stroke();
-                        currentY += padding * 0.8;
-                        
-                        ctx.font = `${resolution * 0.013}px Arial`;
-                        ctx.fillStyle = '#c9d1d9';
-                        
-                        ctx.fillText(`φ(M) = ${currentData.phi}`, rightX, currentY);
-                        currentY += padding * 0.6;
-                        ctx.fillText(`Reducible Residues: ${M - currentData.phi}`, rightX, currentY);
-                        currentY += padding * 0.6;
-                        const reduciblePercent = ((M - currentData.phi) / M * 100).toFixed(1);
-                        ctx.fillText(`Reducibility Ratio: ${reduciblePercent}%`, rightX, currentY);
-                        currentY += padding * 0.6;
-                        
-                        const divisors = [];
-                        for (let d = 1; d < M; d++) {
-                            if (M % d === 0) divisors.push(d);
+                        if (multiModEnabled) {
+                            // MULTI-MODULUS MODE CONFIGURATION
+                            const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
+                            const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
+                            const showRtoR = document.getElementById('showRtoRConnections').checked;
+                            const showGapConn = document.getElementById('showGapConnections').checked;
+                            const gapSize = parseInt(document.getElementById('gapSize').value);
+                            const connColorMode = document.getElementById('connectionColorMode').value;
+                            const ringSpacing = parseFloat(document.getElementById('ringSpacing').value);
+                            const invertMode = document.getElementById('invertMode').checked;
+                            
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.textAlign = 'left';
+                            ctx.fillText('CONFIGURATION', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.013}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            ctx.fillText(`Modulus Range: ${startMod} to ${endMod}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Total Moduli: ${endMod - startMod + 1}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Ring Spacing: ${ringSpacing.toFixed(1)}×`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Invert Mode: ${invertMode ? 'Enabled' : 'Disabled'}`, rightX, currentY);
+                            currentY += padding * 1.2;
+                            
+                            // CONNECTION SETTINGS
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('CONNECTIONS', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.013}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            ctx.fillText(`r-to-r Connections: ${showRtoR ? 'Enabled' : 'Disabled'}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Gap Connections: ${showGapConn ? 'Enabled' : 'Disabled'}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            if (showGapConn) {
+                                ctx.fillText(`Gap Size (2n): 2×${gapSize} = ${2*gapSize}`, rightX, currentY);
+                                currentY += padding * 0.6;
+                            }
+                            ctx.fillText(`Connection Color: ${connColorMode}`, rightX, currentY);
+                            currentY += padding * 1.2;
+                            
+                            // ANALYSIS
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('ANALYSIS', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.012}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            // Calculate total coprime count across all moduli
+                            let totalCoprime = 0;
+                            let totalPoints = 0;
+                            for (let m = startMod; m <= endMod; m++) {
+                                totalPoints += m;
+                                totalCoprime += eulerPhi(m);
+                            }
+                            
+                            ctx.fillText(`Total Points: ${totalPoints}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Coprime Points: ${totalCoprime}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            const avgDensity = ((totalCoprime / totalPoints) * 100).toFixed(1);
+                            ctx.fillText(`Average Density: ${avgDensity}%`, rightX, currentY);
+                            currentY += padding * 1.2;
+                            
+                            // COLOR KEY
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('COLOR KEY', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            const swatchSize = resolution * 0.015;
+                            const swatchGap = resolution * 0.025;
+                            
+                            ctx.font = `${resolution * 0.012}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            // Cyan
+                            ctx.fillStyle = '#00ffff';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Cyan = Coprime (gcd=1)', rightX + swatchGap, currentY);
+                            currentY += padding * 0.8;
+                            
+                            // Red
+                            ctx.fillStyle = '#ff1493';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Red = Non-coprime (gcd>1)', rightX + swatchGap, currentY);
+                            currentY += padding * 0.8;
+                            
+                            // Rings
+                            ctx.fillStyle = '#ffd700';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Gold = Modulus Rings', rightX + swatchGap, currentY);
+                            currentY += padding * 1.2;
+                            
+                            // KEY RESULT
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('KEY RESULT', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.011}px Arial`;
+                            ctx.fillStyle = textColor;
+                            const maxWidth = rightPanel - padding * 3;
+                            
+                            if (showRtoR) {
+                                wrapText(ctx, 'r-to-r connections show how the same residue value appears across consecutive moduli, revealing structural patterns in coprime distributions.', 
+                                        rightX, currentY, maxWidth, padding * 0.5);
+                                currentY += padding * 2.0;
+                            }
+                            
+                            if (showGapConn) {
+                                wrapText(ctx, `Gap connections (r to r+${2*gapSize}) within each ring reveal prime constellation patterns like twin, cousin, and sexy primes across all moduli.`, 
+                                        rightX, currentY, maxWidth, padding * 0.5);
+                                currentY += padding * 2.0;
+                            }
+                            
+                        } else {
+                            // SINGLE MODULUS MODE CONFIGURATION
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.textAlign = 'left';
+                            ctx.fillText('CONFIGURATION', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.013}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            ctx.fillText(`Modulus M = ${M}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Prime Factorization: ${formatPrimeFactorization(M)}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            
+                            const pointColorMode = document.getElementById('pointColorMode').value;
+                            ctx.fillText(`Point Color: ${pointColorMode}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            
+                            const invertMode = document.getElementById('invertMode').checked;
+                            ctx.fillText(`Invert Mode: ${invertMode ? 'Enabled' : 'Disabled'}`, rightX, currentY);
+                            currentY += padding * 1.2;
+                            
+                            // STATISTICS section
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('STATISTICS', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.013}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            ctx.fillText(`φ(M) = ${currentData.phi}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            ctx.fillText(`Reducible Residues: ${M - currentData.phi}`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            const reduciblePercent = ((M - currentData.phi) / M * 100).toFixed(1);
+                            ctx.fillText(`Reducibility Ratio: ${reduciblePercent}%`, rightX, currentY);
+                            currentY += padding * 0.6;
+                            
+                            const divisors = [];
+                            for (let d = 1; d < M; d++) {
+                                if (M % d === 0) divisors.push(d);
+                            }
+                            ctx.fillText(`Farey Channels: ${divisors.length}`, rightX, currentY);
+                            currentY += padding * 1.2;
+                            
+                            // COLOR KEY section
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('COLOR KEY', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            const swatchSize = resolution * 0.015;
+                            const swatchGap = resolution * 0.025;
+                            
+                            ctx.font = `${resolution * 0.012}px Arial`;
+                            ctx.fillStyle = textColor;
+                            
+                            ctx.fillStyle = '#00ffff';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Cyan = Irreducible (gcd=1)', rightX + swatchGap, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.fillStyle = '#ff1493';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Red = Reducible (gcd>1)', rightX + swatchGap, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.fillStyle = '#ff0000';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Red Lines = Farey Channels', rightX + swatchGap, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.fillStyle = '#ffd700';
+                            ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                            ctx.fillStyle = textColor;
+                            ctx.fillText('Gold = Channel Rings', rightX + swatchGap, currentY);
+                            currentY += padding * 1.2;
+                            
+                            ctx.font = `${resolution * 0.011}px Arial`;
+                            ctx.fillStyle = mutedColor;
+                            const maxWidth = rightPanel - padding * 3;
+                            wrapText(ctx, 'Farey Lines: Connect each reducible residue r/M on the outer ring to its reduced form r\'/M\' on the corresponding inner channel ring.', 
+                                    rightX, currentY, maxWidth, padding * 0.5);
+                            currentY += padding * 2.5;
+                            
+                            // KEY RESULT section
+                            ctx.font = `bold ${resolution * 0.018}px Arial`;
+                            ctx.fillStyle = headingColor;
+                            ctx.fillText('KEY RESULT', rightX, currentY);
+                            currentY += padding * 0.8;
+                            
+                            ctx.strokeStyle = canvasBgColor === '#ffffff' ? '#d0d7de' : '#30363d';
+                            ctx.beginPath();
+                            ctx.moveTo(rightX, currentY);
+                            ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                            ctx.stroke();
+                            currentY += padding * 0.8;
+                            
+                            ctx.font = `${resolution * 0.011}px Arial`;
+                            ctx.fillStyle = textColor;
+                            wrapText(ctx, 'Every composite M has reducible residues projecting onto simpler Farey channels. The number projecting to channel M\' is exactly d = M/M\' (multiplicity).', 
+                                    rightX, currentY, maxWidth, padding * 0.5);
+                            currentY += padding * 2.5;
                         }
-                        ctx.fillText(`Farey Channels: ${divisors.length}`, rightX, currentY);
-                        currentY += padding * 1.2;
-                        
-                        // COLOR KEY section
-                        ctx.font = `bold ${resolution * 0.018}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
-                        ctx.fillText('COLOR KEY', rightX, currentY);
-                        currentY += padding * 0.8;
-                        
-                        ctx.strokeStyle = '#30363d';
-                        ctx.beginPath();
-                        ctx.moveTo(rightX, currentY);
-                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
-                        ctx.stroke();
-                        currentY += padding * 0.8;
-                        
-                        // Color swatches
-                        const swatchSize = resolution * 0.015;
-                        const swatchGap = resolution * 0.025;
-                        
-                        ctx.font = `${resolution * 0.012}px Arial`;
-                        ctx.fillStyle = '#c9d1d9';
-                        
-                        // Cyan
-                        ctx.fillStyle = '#00ffff';
-                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
-                        ctx.fillStyle = '#c9d1d9';
-                        ctx.fillText('Cyan = Irreducible (gcd=1)', rightX + swatchGap, currentY);
-                        currentY += padding * 0.8;
-                        
-                        // Red points
-                        ctx.fillStyle = '#ff1493';
-                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
-                        ctx.fillStyle = '#c9d1d9';
-                        ctx.fillText('Red = Reducible (gcd>1)', rightX + swatchGap, currentY);
-                        currentY += padding * 0.8;
-                        
-                        // Red lines
-                        ctx.fillStyle = '#ff0000';
-                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
-                        ctx.fillStyle = '#c9d1d9';
-                        ctx.fillText('Red Lines = Farey Channels', rightX + swatchGap, currentY);
-                        currentY += padding * 0.8;
-                        
-                        // Blue ring
-                        ctx.fillStyle = '#58a6ff';
-                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
-                        ctx.fillStyle = '#c9d1d9';
-                        ctx.fillText('Blue = Outer ring (M circle)', rightX + swatchGap, currentY);
-                        currentY += padding * 1.2;
-                        
-                        // Farey explanation
-                        ctx.font = `${resolution * 0.011}px Arial`;
-                        ctx.fillStyle = '#8b949e';
-                        const maxWidth = rightPanel - padding * 3;
-                        wrapText(ctx, 'Farey Lines: Connect each reducible residue r/M on the outer ring to its reduced form r\'/M\' on the corresponding inner channel ring.', 
-                                rightX, currentY, maxWidth, padding * 0.5);
-                        currentY += padding * 2.5;
-                        
-                        // KEY RESULT section
-                        ctx.font = `bold ${resolution * 0.018}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
-                        ctx.fillText('KEY RESULT', rightX, currentY);
-                        currentY += padding * 0.8;
-                        
-                        ctx.strokeStyle = '#30363d';
-                        ctx.beginPath();
-                        ctx.moveTo(rightX, currentY);
-                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
-                        ctx.stroke();
-                        currentY += padding * 0.8;
-                        
-                        ctx.font = `${resolution * 0.011}px Arial`;
-                        ctx.fillStyle = '#c9d1d9';
-                        wrapText(ctx, 'Every composite M has reducible residues projecting onto simpler Farey channels. The number projecting to channel M\' is exactly d = M/M\' (multiplicity).', 
-                                rightX, currentY, maxWidth, padding * 0.5);
-                        currentY += padding * 2.5;
                         
                         // METADATA section at bottom
                         currentY = canvas.height - padding * 4;
                         ctx.font = `bold ${resolution * 0.016}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
+                        ctx.fillStyle = headingColor;
                         ctx.fillText('METADATA', rightX, currentY);
                         currentY += padding * 0.8;
                         
                         ctx.font = `${resolution * 0.01}px Arial`;
-                        ctx.fillStyle = '#8b949e';
+                        ctx.fillStyle = mutedColor;
                         ctx.fillText(`Generated: ${new Date().toLocaleString()}`, rightX, currentY);
                         currentY += padding * 0.5;
                         ctx.fillText('Author: Wessen Getachew', rightX, currentY);
@@ -1848,7 +2204,10 @@
                 canvas.toBlob(blob => {
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
-                    a.download = `modular-M${M}-${Date.now()}.png`;
+                    const filename = multiModEnabled ? 
+                        `multimod-${document.getElementById('multiModStart').value}-to-${document.getElementById('multiModEnd').value}-${Date.now()}.png` :
+                        `modular-M${M}-${Date.now()}.png`;
+                    a.download = filename;
                     a.click();
                 });
             };
@@ -1950,6 +2309,11 @@
             document.getElementById('ringRotValue').textContent = value.toFixed(1);
             render();
         });
+
+        document.getElementById('canvasBg').addEventListener('change', render);
+        document.getElementById('customBgColor').addEventListener('change', render);
+        document.getElementById('ringColorMode').addEventListener('change', render);
+        document.getElementById('customRingColor').addEventListener('change', render);
 
         document.getElementById('gapSize').addEventListener('input', (e) => {
             document.getElementById('gapSizeValue').textContent = e.target.value;
