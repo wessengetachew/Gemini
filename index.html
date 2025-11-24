@@ -404,10 +404,32 @@
                     <button class="preset-btn stop-btn" onclick="stopAnimation()">⏸ Stop</button>
                 </div>
                 <div class="control-group" style="margin-top: 15px;">
+                    <label class="control-label">Animation Mode</label>
+                    <select id="animMode">
+                        <option value="increment">Increment M</option>
+                        <option value="decrement">Decrement M</option>
+                        <option value="rotate">Rotate Rings</option>
+                        <option value="rotateGlobal">Rotate Global</option>
+                    </select>
+                </div>
+                <div class="control-group">
                     <label class="control-label">
-                        Speed (ms) <span class="value-display" id="speedValue">500</span>
+                        Frame Delay (ms) <span class="value-display" id="speedValue">500</span>
                     </label>
-                    <input type="range" id="animSpeed" min="50" max="2000" value="500">
+                    <input type="range" id="animSpeed" min="50" max="2000" step="50" value="500">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        Speed Multiplier <span class="value-display" id="speedMultValue">1.0</span>×
+                    </label>
+                    <input type="range" id="speedMultiplier" min="0.1" max="5.0" step="0.1" value="1.0">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Animation Range</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="number" id="animStart" min="2" max="10000" value="2" placeholder="Start">
+                        <input type="number" id="animEnd" min="2" max="10000" value="200" placeholder="End">
+                    </div>
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="loopAnim" checked>
@@ -702,7 +724,6 @@
         // Global state
         let M = 32;
         let currentData = null;
-        let animationInterval = null;
 
         // Mathematical functions
         function gcd(a, b) {
@@ -1261,28 +1282,98 @@
         }
 
         // Animation
+        let animationState = {
+            interval: null,
+            currentValue: 2,
+            rotationValue: 0
+        };
+
         function startAnimation() {
-            if (animationInterval) return;
+            if (animationState.interval) {
+                stopAnimation();
+            }
             
-            const speed = parseInt(document.getElementById('animSpeed').value);
+            const mode = document.getElementById('animMode').value;
+            const baseSpeed = parseInt(document.getElementById('animSpeed').value);
+            const multiplier = parseFloat(document.getElementById('speedMultiplier').value);
+            const actualSpeed = baseSpeed / multiplier; // Higher multiplier = faster animation
             const loop = document.getElementById('loopAnim').checked;
-            let current = M;
+            const startVal = parseInt(document.getElementById('animStart').value) || 2;
+            const endVal = parseInt(document.getElementById('animEnd').value) || 200;
             
-            animationInterval = setInterval(() => {
-                current++;
-                if (current > 200 && loop) current = 2;
-                if (current > 200 && !loop) {
-                    stopAnimation();
-                    return;
+            // Initialize based on mode
+            if (mode === 'increment' || mode === 'decrement') {
+                animationState.currentValue = mode === 'increment' ? startVal : endVal;
+            } else if (mode === 'rotate' || mode === 'rotateGlobal') {
+                animationState.rotationValue = 0;
+            }
+            
+            animationState.interval = setInterval(() => {
+                switch(mode) {
+                    case 'increment':
+                        animationState.currentValue++;
+                        if (animationState.currentValue > endVal) {
+                            if (loop) {
+                                animationState.currentValue = startVal;
+                            } else {
+                                stopAnimation();
+                                return;
+                            }
+                        }
+                        setModulus(animationState.currentValue);
+                        break;
+                        
+                    case 'decrement':
+                        animationState.currentValue--;
+                        if (animationState.currentValue < startVal) {
+                            if (loop) {
+                                animationState.currentValue = endVal;
+                            } else {
+                                stopAnimation();
+                                return;
+                            }
+                        }
+                        setModulus(animationState.currentValue);
+                        break;
+                        
+                    case 'rotate':
+                        animationState.rotationValue += 2 * multiplier;
+                        if (animationState.rotationValue >= 720) {
+                            if (loop) {
+                                animationState.rotationValue = 0;
+                            } else {
+                                stopAnimation();
+                                return;
+                            }
+                        }
+                        document.getElementById('ringRotation').value = animationState.rotationValue;
+                        document.getElementById('ringRotValue').textContent = animationState.rotationValue.toFixed(1);
+                        document.getElementById('ringRotInput').value = Math.round(animationState.rotationValue);
+                        render();
+                        break;
+                        
+                    case 'rotateGlobal':
+                        animationState.rotationValue += 2 * multiplier;
+                        if (animationState.rotationValue >= 360) {
+                            if (loop) {
+                                animationState.rotationValue = 0;
+                            } else {
+                                stopAnimation();
+                                return;
+                            }
+                        }
+                        document.getElementById('rotation').value = animationState.rotationValue;
+                        document.getElementById('rotationValue').textContent = Math.round(animationState.rotationValue);
+                        render();
+                        break;
                 }
-                setModulus(current);
-            }, speed);
+            }, actualSpeed);
         }
 
         function stopAnimation() {
-            if (animationInterval) {
-                clearInterval(animationInterval);
-                animationInterval = null;
+            if (animationState.interval) {
+                clearInterval(animationState.interval);
+                animationState.interval = null;
             }
         }
 
@@ -1608,6 +1699,10 @@
 
         document.getElementById('animSpeed').addEventListener('input', (e) => {
             document.getElementById('speedValue').textContent = e.target.value;
+        });
+
+        document.getElementById('speedMultiplier').addEventListener('input', (e) => {
+            document.getElementById('speedMultValue').textContent = parseFloat(e.target.value).toFixed(1);
         });
 
         document.getElementById('zoom').addEventListener('input', (e) => {
