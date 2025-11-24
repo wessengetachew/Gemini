@@ -259,6 +259,51 @@
             margin-top: 10px;
         }
 
+        .channel-item {
+            background: rgba(30, 36, 56, 0.5);
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .channel-header {
+            font-size: 0.95rem;
+            color: #79c0ff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .channel-formula {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #c9d1d9;
+            margin: 4px 0;
+        }
+
+        .channel-ratio {
+            font-size: 0.85rem;
+            color: #8b949e;
+            margin-top: 6px;
+        }
+
+        .angle-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .angle-chip {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            color: #79c0ff;
+            font-family: 'Courier New', monospace;
+        }
+
         .animation-controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -540,12 +585,109 @@
                 </div>
             </div>
 
+            <!-- ANALYSIS -->
+            <div class="control-section">
+                <h3>Analysis</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="showAnalysis" onchange="updateAnalysis()">
+                    <label for="showAnalysis">Show Detailed Analysis</label>
+                </div>
+                <div id="analysisPanel" style="display: none; margin-top: 10px;">
+                    <div style="background: rgba(30, 36, 56, 0.5); border: 1px solid #30363d; border-radius: 6px; padding: 15px;">
+                        <div style="font-size: 1rem; color: #79c0ff; font-weight: 500; margin-bottom: 10px;">
+                            Modulus M = <span id="analysisMod">32</span> = <span id="analysisFactorization">2⁵</span>
+                        </div>
+                        
+                        <div style="margin: 15px 0;">
+                            <div style="font-size: 0.9rem; color: #c9d1d9; margin: 5px 0;">
+                                <span style="color: #79c0ff;">Coprime:</span> <span id="analysisCoprimeCount">16</span> residues (φ(M))
+                            </div>
+                            <div style="font-size: 0.9rem; color: #c9d1d9; margin: 5px 0;">
+                                <span style="color: #79c0ff;">Reducible:</span> <span id="analysisReducibleCount">16</span> residues
+                            </div>
+                            <div style="font-size: 0.9rem; color: #c9d1d9; margin: 5px 0;">
+                                <span style="color: #79c0ff;">Ratio:</span> <span id="analysisRatio">50.0%</span> reducible
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #30363d;">
+                            <div style="font-size: 0.95rem; color: #79c0ff; font-weight: 500; margin-bottom: 8px;">
+                                Farey Channels:
+                            </div>
+                            <div id="fareyChannelsList" style="font-size: 0.85rem; color: #c9d1d9; line-height: 1.8;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLOR KEY -->
+            <div class="control-section">
+                <h3>Color Key</h3>
+                <div style="background: rgba(30, 36, 56, 0.5); border: 1px solid #30363d; border-radius: 6px; padding: 15px;">
+                    <div style="display: flex; align-items: center; margin: 8px 0;">
+                        <div style="width: 20px; height: 20px; background: #00ffff; border-radius: 4px; margin-right: 10px;"></div>
+                        <span style="font-size: 0.9rem; color: #c9d1d9;">Cyan = Irreducible (gcd=1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin: 8px 0;">
+                        <div style="width: 20px; height: 20px; background: #ff1493; border-radius: 4px; margin-right: 10px;"></div>
+                        <span style="font-size: 0.9rem; color: #c9d1d9;">Red = Reducible (gcd>1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin: 8px 0;">
+                        <div style="width: 20px; height: 20px; background: #ff0000; border-radius: 4px; margin-right: 10px;"></div>
+                        <span style="font-size: 0.9rem; color: #c9d1d9;">Red Lines = Farey Channels</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin: 8px 0;">
+                        <div style="width: 20px; height: 20px; background: #58a6ff; border-radius: 4px; margin-right: 10px;"></div>
+                        <span style="font-size: 0.9rem; color: #c9d1d9;">Blue = Outer ring (M circle)</span>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #30363d; font-size: 0.85rem; color: #8b949e;">
+                        Farey Lines: Connect each reducible residue r/M on the outer ring to its reduced form r'/M' on the corresponding inner channel ring.
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHANNEL ANGLES -->
+            <div class="control-section">
+                <h3>Channel Angles (2πr/M)</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="showChannelInfo" onchange="updateChannelInfo()">
+                    <label for="showChannelInfo">Show Channel Details</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="showAngleOverlay" onchange="render()">
+                    <label for="showAngleOverlay">Show Angle Overlay on Rings</label>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Angle Display Format</label>
+                    <select id="angleFormat" onchange="render()">
+                        <option value="degrees">Degrees (0-360°)</option>
+                        <option value="radians">Radians (0-2π)</option>
+                        <option value="formula">Formula (2πr/M)</option>
+                    </select>
+                </div>
+                <div id="channelInfo" style="display: none; max-height: 300px; overflow-y: auto; margin-top: 10px;">
+                    <div style="font-size: 0.85rem; color: #8b949e; margin-bottom: 10px;">
+                        For each divisor M' of M, showing angle formula 2πr/M' in degrees
+                    </div>
+                    <div id="channelList"></div>
+                </div>
+            </div>
+
             <!-- DATA EXPORT -->
             <div class="control-section">
                 <h3>Data Export</h3>
                 <div class="control-group">
                     <label class="control-label">Export Resolution (px)</label>
                     <input type="number" id="exportRes" min="1000" max="8000" value="3000">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="exportWithLegend" checked>
+                    <label for="exportWithLegend">Include Legend</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="exportWithTitle" checked>
+                    <label for="exportWithTitle">Include Title & Analysis</label>
                 </div>
                 <div class="preset-buttons">
                     <button class="preset-btn export-btn" onclick="exportPNG()">PNG</button>
@@ -905,8 +1047,188 @@
                 });
             }
 
+            // Draw angle overlay if enabled
+            const showAngleOverlay = document.getElementById('showAngleOverlay').checked;
+            const angleFormat = document.getElementById('angleFormat').value;
+            
+            if (showAngleOverlay && showAllRingPoints) {
+                allRingPoints.forEach((point, idx) => {
+                    // Only show angle overlay for every Nth point to avoid clutter
+                    const isOuterRing = point.ring === M;
+                    const nthFilter = isOuterRing ? labelEveryN * 2 : labelEveryNInner * 2;
+                    if (point.r % nthFilter !== 0) return;
+                    
+                    let angleText = '';
+                    const angleRad = (2 * Math.PI * point.r) / point.ring;
+                    const angleDeg = (angleRad * 180 / Math.PI) % 360;
+                    
+                    switch(angleFormat) {
+                        case 'degrees':
+                            angleText = angleDeg.toFixed(1) + '°';
+                            break;
+                        case 'radians':
+                            angleText = (angleRad / Math.PI).toFixed(3) + 'π';
+                            break;
+                        case 'formula':
+                            angleText = `2π(${point.r}/${point.ring})`;
+                            break;
+                    }
+                    
+                    // Position text slightly inside the ring
+                    const textRadius = point.radius * 0.85;
+                    const textX = textRadius * Math.cos(point.angle);
+                    const textY = textRadius * Math.sin(point.angle);
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', textX);
+                    text.setAttribute('y', textY);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('dominant-baseline', 'middle');
+                    text.setAttribute('fill', '#ffd700');
+                    text.setAttribute('font-size', labelSize * 0.8);
+                    text.setAttribute('opacity', opacity * 0.7);
+                    text.setAttribute('font-family', 'Courier New, monospace');
+                    text.textContent = angleText;
+                    mainG.appendChild(text);
+                });
+            }
+
             svg.appendChild(mainG);
             updateStatistics();
+        }
+
+        // Update analysis panel
+        function updateAnalysis() {
+            const showAnalysis = document.getElementById('showAnalysis').checked;
+            const analysisPanel = document.getElementById('analysisPanel');
+            
+            if (!showAnalysis) {
+                analysisPanel.style.display = 'none';
+                return;
+            }
+            
+            analysisPanel.style.display = 'block';
+            
+            if (!currentData) return;
+            
+            // Update main analysis values
+            document.getElementById('analysisMod').textContent = M;
+            document.getElementById('analysisFactorization').textContent = formatPrimeFactorization(M);
+            document.getElementById('analysisCoprimeCount').textContent = currentData.phi;
+            document.getElementById('analysisReducibleCount').textContent = M - currentData.phi;
+            
+            const reduciblePercent = ((M - currentData.phi) / M * 100).toFixed(1);
+            document.getElementById('analysisRatio').textContent = reduciblePercent + '% reducible';
+            
+            // Build Farey channels list
+            const fareyList = document.getElementById('fareyChannelsList');
+            fareyList.innerHTML = '';
+            
+            // Get all divisors except M itself
+            const divisors = [];
+            for (let d = 1; d < M; d++) {
+                if (M % d === 0) divisors.push(d);
+            }
+            divisors.sort((a, b) => b - a); // Sort descending
+            
+            divisors.forEach(divisor => {
+                const multiplicity = M / divisor;
+                const residueCount = currentData.residues.filter(r => r.channel === divisor).length;
+                
+                const line = document.createElement('div');
+                line.style.margin = '4px 0';
+                line.innerHTML = `M' = ${divisor}: ${residueCount} residues (d = ${multiplicity})`;
+                fareyList.appendChild(line);
+            });
+        }
+
+        // Update channel information display
+        function updateChannelInfo() {
+            const showInfo = document.getElementById('showChannelInfo').checked;
+            const channelInfo = document.getElementById('channelInfo');
+            
+            if (!showInfo) {
+                channelInfo.style.display = 'none';
+                return;
+            }
+            
+            channelInfo.style.display = 'block';
+            
+            if (!currentData) return;
+            
+            const channelList = document.getElementById('channelList');
+            channelList.innerHTML = '';
+            
+            // Get all divisors
+            const divisors = [];
+            for (let d = 1; d <= M; d++) {
+                if (M % d === 0) divisors.push(d);
+            }
+            
+            divisors.sort((a, b) => a - b);
+            
+            // For each divisor (ring), show its angles
+            divisors.forEach(divisor => {
+                const channelDiv = document.createElement('div');
+                channelDiv.className = 'channel-item';
+                
+                // Header with M' and ratio
+                const header = document.createElement('div');
+                header.className = 'channel-header';
+                header.textContent = `Ring M' = ${divisor}`;
+                channelDiv.appendChild(header);
+                
+                // Show ratio M'/M
+                const ratio = document.createElement('div');
+                ratio.className = 'channel-ratio';
+                const ratioValue = (divisor / M).toFixed(4);
+                ratio.textContent = `Ratio: ${divisor}/${M} = ${ratioValue}`;
+                channelDiv.appendChild(ratio);
+                
+                // Angular spacing formula
+                const formula = document.createElement('div');
+                formula.className = 'channel-formula';
+                const angularSpacing = (360 / divisor).toFixed(2);
+                formula.textContent = `Angular spacing: 360°/${divisor} = ${angularSpacing}°`;
+                channelDiv.appendChild(formula);
+                
+                // Show angles for first few points (or all if small)
+                const numPointsToShow = divisor <= 12 ? divisor : 12;
+                const angleListDiv = document.createElement('div');
+                angleListDiv.className = 'angle-list';
+                
+                for (let r = 0; r < numPointsToShow; r++) {
+                    const angleChip = document.createElement('div');
+                    angleChip.className = 'angle-chip';
+                    
+                    // Calculate angle using 2πr/M' formula
+                    const angleRad = (2 * Math.PI * r) / divisor;
+                    const angleDeg = (angleRad * 180 / Math.PI).toFixed(1);
+                    
+                    angleChip.textContent = `r=${r}: ${angleDeg}°`;
+                    angleListDiv.appendChild(angleChip);
+                }
+                
+                if (divisor > 12) {
+                    const moreChip = document.createElement('div');
+                    moreChip.className = 'angle-chip';
+                    moreChip.style.background = 'transparent';
+                    moreChip.style.border = 'none';
+                    moreChip.textContent = `... ${divisor - 12} more`;
+                    angleListDiv.appendChild(moreChip);
+                }
+                
+                channelDiv.appendChild(angleListDiv);
+                
+                // Number of points on this ring
+                const pointCount = document.createElement('div');
+                pointCount.className = 'channel-formula';
+                pointCount.style.marginTop = '8px';
+                pointCount.textContent = `Total points: ${divisor}`;
+                channelDiv.appendChild(pointCount);
+                
+                channelList.appendChild(channelDiv);
+            });
         }
 
         // Update statistics display
@@ -934,6 +1256,8 @@
             
             currentData = calculate(M);
             render();
+            updateChannelInfo();
+            updateAnalysis();
         }
 
         // Animation
@@ -964,25 +1288,247 @@
 
         // Export functions
         function exportPNG() {
+            const resolution = parseInt(document.getElementById('exportRes').value);
+            const withLegend = document.getElementById('exportWithLegend').checked;
+            const withTitle = document.getElementById('exportWithTitle').checked;
+            
+            // Create canvas for export
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size based on whether we're including legend
+            if (withTitle || withLegend) {
+                canvas.width = resolution;
+                canvas.height = resolution;
+            } else {
+                // Just the visualization and M number
+                canvas.width = resolution;
+                canvas.height = Math.round(resolution * 1.1);
+            }
+            
+            // Fill black background
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Get current SVG
             const svg = document.getElementById('mainCanvas');
             const serializer = new XMLSerializer();
             const svgStr = serializer.serializeToString(svg);
-            const canvas = document.createElement('canvas');
-            const resolution = parseInt(document.getElementById('exportRes').value);
-            canvas.width = resolution;
-            canvas.height = resolution;
-            const ctx = canvas.getContext('2d');
             
             const img = new Image();
             const blob = new Blob([svgStr], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
             
             img.onload = function() {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, resolution, resolution);
-                ctx.drawImage(img, 0, 0, resolution, resolution);
+                if (!withTitle && !withLegend) {
+                    // Simple export: just M and visualization
+                    const vizSize = resolution * 0.85;
+                    const vizX = (canvas.width - vizSize) / 2;
+                    const vizY = resolution * 0.1;
+                    
+                    ctx.drawImage(img, vizX, vizY, vizSize, vizSize);
+                    
+                    // Add M label at top
+                    ctx.font = `${resolution * 0.04}px Arial`;
+                    ctx.fillStyle = '#79c0ff';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`M = ${M}`, canvas.width / 2, resolution * 0.05);
+                    
+                } else {
+                    // Full professional export
+                    const leftPanel = resolution * 0.65;
+                    const rightPanel = resolution * 0.35;
+                    const padding = resolution * 0.03;
+                    
+                    // TITLE at top
+                    if (withTitle) {
+                        ctx.font = `bold ${resolution * 0.025}px Arial`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Modular Reduction Projection Explorer', canvas.width / 2, padding * 1.5);
+                        
+                        // Timestamp
+                        ctx.font = `${resolution * 0.012}px Arial`;
+                        ctx.fillStyle = '#8b949e';
+                        const now = new Date();
+                        ctx.fillText(now.toLocaleString(), canvas.width / 2, padding * 2.3);
+                    }
+                    
+                    const titleHeight = withTitle ? padding * 3 : padding;
+                    
+                    // VISUALIZATION (left side, centered)
+                    const vizSize = leftPanel - padding * 2;
+                    const vizX = padding;
+                    const vizY = titleHeight + (canvas.height - titleHeight - vizSize) / 2;
+                    ctx.drawImage(img, vizX, vizY, vizSize, vizSize);
+                    
+                    // Add M label on visualization
+                    ctx.font = `${resolution * 0.02}px Arial`;
+                    ctx.fillStyle = '#79c0ff';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`Modulus M = ${M}`, vizX + vizSize / 2, vizY - padding * 0.5);
+                    
+                    // RIGHT PANEL - Legend and Stats
+                    if (withLegend) {
+                        const rightX = leftPanel + padding;
+                        let currentY = titleHeight + padding;
+                        
+                        // CONFIGURATION section
+                        ctx.font = `bold ${resolution * 0.018}px Arial`;
+                        ctx.fillStyle = '#79c0ff';
+                        ctx.textAlign = 'left';
+                        ctx.fillText('CONFIGURATION', rightX, currentY);
+                        currentY += padding * 0.8;
+                        
+                        // Draw underline
+                        ctx.strokeStyle = '#30363d';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(rightX, currentY);
+                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                        ctx.stroke();
+                        currentY += padding * 0.8;
+                        
+                        ctx.font = `${resolution * 0.013}px Arial`;
+                        ctx.fillStyle = '#c9d1d9';
+                        
+                        ctx.fillText(`Modulus M = ${M}`, rightX, currentY);
+                        currentY += padding * 0.6;
+                        ctx.fillText(`Prime Factorization: ${formatPrimeFactorization(M)}`, rightX, currentY);
+                        currentY += padding * 0.6;
+                        
+                        const pointColorMode = document.getElementById('pointColorMode').value;
+                        ctx.fillText(`Color Scheme: ${pointColorMode}`, rightX, currentY);
+                        currentY += padding * 1.2;
+                        
+                        // STATISTICS section
+                        ctx.font = `bold ${resolution * 0.018}px Arial`;
+                        ctx.fillStyle = '#79c0ff';
+                        ctx.fillText('STATISTICS', rightX, currentY);
+                        currentY += padding * 0.8;
+                        
+                        ctx.strokeStyle = '#30363d';
+                        ctx.beginPath();
+                        ctx.moveTo(rightX, currentY);
+                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                        ctx.stroke();
+                        currentY += padding * 0.8;
+                        
+                        ctx.font = `${resolution * 0.013}px Arial`;
+                        ctx.fillStyle = '#c9d1d9';
+                        
+                        ctx.fillText(`φ(M) = ${currentData.phi}`, rightX, currentY);
+                        currentY += padding * 0.6;
+                        ctx.fillText(`Reducible Residues: ${M - currentData.phi}`, rightX, currentY);
+                        currentY += padding * 0.6;
+                        const reduciblePercent = ((M - currentData.phi) / M * 100).toFixed(1);
+                        ctx.fillText(`Reducibility Ratio: ${reduciblePercent}%`, rightX, currentY);
+                        currentY += padding * 0.6;
+                        
+                        const divisors = [];
+                        for (let d = 1; d < M; d++) {
+                            if (M % d === 0) divisors.push(d);
+                        }
+                        ctx.fillText(`Farey Channels: ${divisors.length}`, rightX, currentY);
+                        currentY += padding * 1.2;
+                        
+                        // COLOR KEY section
+                        ctx.font = `bold ${resolution * 0.018}px Arial`;
+                        ctx.fillStyle = '#79c0ff';
+                        ctx.fillText('COLOR KEY', rightX, currentY);
+                        currentY += padding * 0.8;
+                        
+                        ctx.strokeStyle = '#30363d';
+                        ctx.beginPath();
+                        ctx.moveTo(rightX, currentY);
+                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                        ctx.stroke();
+                        currentY += padding * 0.8;
+                        
+                        // Color swatches
+                        const swatchSize = resolution * 0.015;
+                        const swatchGap = resolution * 0.025;
+                        
+                        ctx.font = `${resolution * 0.012}px Arial`;
+                        ctx.fillStyle = '#c9d1d9';
+                        
+                        // Cyan
+                        ctx.fillStyle = '#00ffff';
+                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                        ctx.fillStyle = '#c9d1d9';
+                        ctx.fillText('Cyan = Irreducible (gcd=1)', rightX + swatchGap, currentY);
+                        currentY += padding * 0.8;
+                        
+                        // Red points
+                        ctx.fillStyle = '#ff1493';
+                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                        ctx.fillStyle = '#c9d1d9';
+                        ctx.fillText('Red = Reducible (gcd>1)', rightX + swatchGap, currentY);
+                        currentY += padding * 0.8;
+                        
+                        // Red lines
+                        ctx.fillStyle = '#ff0000';
+                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                        ctx.fillStyle = '#c9d1d9';
+                        ctx.fillText('Red Lines = Farey Channels', rightX + swatchGap, currentY);
+                        currentY += padding * 0.8;
+                        
+                        // Blue ring
+                        ctx.fillStyle = '#58a6ff';
+                        ctx.fillRect(rightX, currentY - swatchSize * 0.7, swatchSize, swatchSize);
+                        ctx.fillStyle = '#c9d1d9';
+                        ctx.fillText('Blue = Outer ring (M circle)', rightX + swatchGap, currentY);
+                        currentY += padding * 1.2;
+                        
+                        // Farey explanation
+                        ctx.font = `${resolution * 0.011}px Arial`;
+                        ctx.fillStyle = '#8b949e';
+                        const maxWidth = rightPanel - padding * 3;
+                        wrapText(ctx, 'Farey Lines: Connect each reducible residue r/M on the outer ring to its reduced form r\'/M\' on the corresponding inner channel ring.', 
+                                rightX, currentY, maxWidth, padding * 0.5);
+                        currentY += padding * 2.5;
+                        
+                        // KEY RESULT section
+                        ctx.font = `bold ${resolution * 0.018}px Arial`;
+                        ctx.fillStyle = '#79c0ff';
+                        ctx.fillText('KEY RESULT', rightX, currentY);
+                        currentY += padding * 0.8;
+                        
+                        ctx.strokeStyle = '#30363d';
+                        ctx.beginPath();
+                        ctx.moveTo(rightX, currentY);
+                        ctx.lineTo(rightX + rightPanel - padding * 2, currentY);
+                        ctx.stroke();
+                        currentY += padding * 0.8;
+                        
+                        ctx.font = `${resolution * 0.011}px Arial`;
+                        ctx.fillStyle = '#c9d1d9';
+                        wrapText(ctx, 'Every composite M has reducible residues projecting onto simpler Farey channels. The number projecting to channel M\' is exactly d = M/M\' (multiplicity).', 
+                                rightX, currentY, maxWidth, padding * 0.5);
+                        currentY += padding * 2.5;
+                        
+                        // METADATA section at bottom
+                        currentY = canvas.height - padding * 4;
+                        ctx.font = `bold ${resolution * 0.016}px Arial`;
+                        ctx.fillStyle = '#79c0ff';
+                        ctx.fillText('METADATA', rightX, currentY);
+                        currentY += padding * 0.8;
+                        
+                        ctx.font = `${resolution * 0.01}px Arial`;
+                        ctx.fillStyle = '#8b949e';
+                        ctx.fillText(`Generated: ${new Date().toLocaleString()}`, rightX, currentY);
+                        currentY += padding * 0.5;
+                        ctx.fillText('Author: Wessen Getachew', rightX, currentY);
+                        currentY += padding * 0.5;
+                        ctx.fillText('Tool: Modular Reduction Projection Explorer', rightX, currentY);
+                        currentY += padding * 0.5;
+                        ctx.fillText(`Resolution: ${resolution}×${resolution}`, rightX, currentY);
+                    }
+                }
+                
                 URL.revokeObjectURL(url);
                 
+                // Save canvas as PNG
                 canvas.toBlob(blob => {
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
@@ -990,7 +1536,30 @@
                     a.click();
                 });
             };
+            
             img.src = url;
+        }
+        
+        // Helper function to wrap text
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let currentY = y;
+            
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, currentY);
+                    line = words[n] + ' ';
+                    currentY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, currentY);
         }
 
         function exportCSV() {
