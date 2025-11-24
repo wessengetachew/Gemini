@@ -410,29 +410,6 @@
                 <p>Prime Factorization: <span id="primeFactorization">2⁵</span></p>
             </div>
             <div id="canvas-container">
-                <!-- INTERACTIVE INFO PANEL -->
-                <div id="interactiveInfo" style="display: none; position: absolute; background: rgba(26, 31, 58, 0.98); 
-                     border: 2px solid #58a6ff; border-radius: 8px; padding: 15px; z-index: 100; 
-                     min-width: 280px; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); left: 50px; top: 50px;">
-                    <div style="font-size: 0.95rem; color: #79c0ff; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #30363d; padding-bottom: 5px;">
-                        📍 Point Details
-                    </div>
-                    <div id="infoContent" style="font-size: 0.85rem; color: #c9d1d9; line-height: 1.8;"></div>
-                </div>
-
-                <!-- STATISTICAL PANEL -->
-                <div id="statsPanel" style="position: absolute; top: 30px; right: 30px; 
-                     background: rgba(26, 31, 58, 0.95); border: 1px solid #58a6ff; 
-                     border-radius: 8px; padding: 20px; width: 320px; max-height: 450px; 
-                     overflow-y: auto; z-index: 50; display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 8px;">
-                        <h3 style="color: #79c0ff; font-size: 1.1rem; margin: 0;">📊 Statistics</h3>
-                        <button onclick="toggleStatsPanel()" style="background: transparent; border: none; color: #ff6b6b; cursor: pointer; font-size: 1.2rem;">✕</button>
-                    </div>
-                    <div id="statsContent" style="font-size: 0.85rem; color: #c9d1d9; line-height: 1.6;"></div>
-                    <canvas id="statsChart" width="280" height="160" style="margin-top: 15px; border-radius: 4px;"></canvas>
-                </div>
-
                 <svg id="mainCanvas" width="800" height="800" viewBox="-500 -500 1000 1000"></svg>
             </div>
         </div>
@@ -502,42 +479,6 @@
                 <div class="checkbox-group">
                     <input type="checkbox" id="loopAnim" checked>
                     <label for="loopAnim">Loop Animation</label>
-                </div>
-                
-                <!-- RECORDING CONTROLS -->
-                <div style="border-top: 1px solid var(--border-color); margin-top: 15px; padding-top: 15px;">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="recordAnimation" onchange="toggleRecordingOptions()">
-                        <label for="recordAnimation">Record Animation</label>
-                    </div>
-                    <div id="recordingOptions" style="display: none; margin-top: 10px;">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="recordWithLegend" checked>
-                            <label for="recordWithLegend">Include Legend</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="recordWithTitle" checked>
-                            <label for="recordWithTitle">Include Title</label>
-                        </div>
-                        <div class="control-group">
-                            <label class="control-label">Recording Resolution</label>
-                            <select id="recordResolution">
-                                <option value="800">800×800 (Fast)</option>
-                                <option value="1200" selected>1200×1200 (Medium)</option>
-                                <option value="1600">1600×1600 (High)</option>
-                                <option value="2000">2000×2000 (Very High)</option>
-                            </select>
-                        </div>
-                        <div class="control-group">
-                            <label class="control-label">Max Frames</label>
-                            <input type="number" id="maxFrames" min="10" max="500" value="100" placeholder="Max frames">
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                            <button class="preset-btn export-btn" onclick="exportRecordedFrames()" id="exportFramesBtn" disabled>💾 Save Frames (ZIP)</button>
-                            <button class="preset-btn export-btn" onclick="exportAsGIF()" id="exportGifBtn" disabled>🎬 Export as GIF</button>
-                        </div>
-                        <div id="recordingStatus" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-tertiary);"></div>
-                    </div>
                 </div>
             </div>
 
@@ -768,14 +709,6 @@
                         <option value="dark">Dark Mode</option>
                         <option value="light">Light Mode</option>
                     </select>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="enableInteractive" checked onchange="toggleInteractive()">
-                    <label for="enableInteractive">Enable Click/Hover Info</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showStatistics" onchange="toggleStatsPanel()">
-                    <label for="showStatistics">Show Statistical Panel</label>
                 </div>
                 <div class="control-group">
                     <label class="control-label">Canvas Background</label>
@@ -1076,339 +1009,6 @@
                 isPrime: isPrime(modulus),
                 omega: Object.keys(primeFactorization(modulus)).length
             };
-        }
-
-        // Phase 1 Features: Interactive Info and Statistics (3D removed)
-        let interactiveState = {
-            enabled: true,
-            hoveredPoint: null,
-            clickedPoint: null
-        };
-
-        // Toggle interactive mode
-        function toggleInteractive() {
-            interactiveState.enabled = document.getElementById('enableInteractive').checked;
-            if (!interactiveState.enabled) {
-                document.getElementById('interactiveInfo').style.display = 'none';
-            }
-        }
-
-        // Toggle statistics panel
-        function toggleStatsPanel() {
-            const show = document.getElementById('showStatistics').checked;
-            document.getElementById('statsPanel').style.display = show ? 'block' : 'none';
-            if (show) {
-                updateStatisticsPanel();
-            }
-        }
-
-        // Update statistics panel with analysis
-        function updateStatisticsPanel() {
-            if (!currentData) return;
-            
-            const multiModEnabled = document.getElementById('enableMultiMod').checked;
-            const statsContent = document.getElementById('statsContent');
-            
-            if (multiModEnabled) {
-                const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
-                const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
-                
-                let html = '<div style="margin-bottom: 15px;">';
-                html += `<strong>Range:</strong> M = ${startMod} to ${endMod}<br>`;
-                html += `<strong>Total Moduli:</strong> ${endMod - startMod + 1}<br>`;
-                
-                // Calculate aggregate stats
-                let totalPoints = 0;
-                let totalCoprime = 0;
-                let primeCount = 0;
-                
-                for (let m = startMod; m <= endMod; m++) {
-                    totalPoints += m;
-                    totalCoprime += eulerPhi(m);
-                    if (isPrime(m)) primeCount++;
-                }
-                
-                html += `<strong>Total Points:</strong> ${totalPoints}<br>`;
-                html += `<strong>Coprime Points:</strong> ${totalCoprime}<br>`;
-                html += `<strong>Average Density:</strong> ${(totalCoprime/totalPoints*100).toFixed(2)}%<br>`;
-                html += `<strong>Prime Moduli:</strong> ${primeCount}<br>`;
-                html += `<strong>Composite Moduli:</strong> ${(endMod-startMod+1-primeCount)}<br>`;
-                html += '</div>';
-                
-                statsContent.innerHTML = html;
-                drawStatsChart(startMod, endMod);
-            } else {
-                let html = '<div style="margin-bottom: 15px;">';
-                html += `<strong>Modulus:</strong> M = ${M}<br>`;
-                html += `<strong>φ(M):</strong> ${currentData.phi}<br>`;
-                html += `<strong>Coprime Residues:</strong> ${currentData.phi}<br>`;
-                html += `<strong>Non-coprime:</strong> ${M - currentData.phi}<br>`;
-                html += `<strong>Density:</strong> ${(currentData.phi/M*100).toFixed(2)}%<br>`;
-                html += `<strong>Class:</strong> ${currentData.is_prime ? 'Prime' : 'Composite'}<br>`;
-                html += `<strong>ω(M):</strong> ${currentData.omega}<br>`;
-                
-                const divisors = [];
-                for (let d = 1; d < M; d++) {
-                    if (M % d === 0) divisors.push(d);
-                }
-                html += `<strong>Farey Channels:</strong> ${divisors.length}<br>`;
-                html += '</div>';
-                
-                html += '<div style="border-top: 1px solid #30363d; padding-top: 10px; margin-top: 10px;">';
-                html += '<strong>Channel Distribution:</strong><br>';
-                divisors.slice(0, 5).forEach(d => {
-                    const mult = M / d;
-                    html += `<span style="font-size: 0.8rem; color: #8b949e;">M'=${d}: ${mult} residues</span><br>`;
-                });
-                if (divisors.length > 5) {
-                    html += `<span style="font-size: 0.75rem; color: #6e7681;">...and ${divisors.length - 5} more</span><br>`;
-                }
-                html += '</div>';
-                
-                statsContent.innerHTML = html;
-                drawSingleModChart();
-            }
-        }
-
-        // Draw statistics chart for multi-mod
-        function drawStatsChart(startMod, endMod) {
-            const canvas = document.getElementById('statsChart');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            
-            ctx.clearRect(0, 0, width, height);
-            
-            const data = [];
-            const step = Math.max(1, Math.floor((endMod - startMod) / 30));
-            
-            for (let m = startMod; m <= endMod; m += step) {
-                const phi = eulerPhi(m);
-                const density = phi / m;
-                data.push({ m, density });
-            }
-            
-            if (data.length === 0) return;
-            
-            const maxDensity = 1.0;
-            const padding = 30;
-            const chartWidth = width - padding * 2;
-            const chartHeight = height - padding * 2;
-            
-            // Draw axes
-            ctx.strokeStyle = '#30363d';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
-            
-            // Draw grid
-            ctx.strokeStyle = '#21262d';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i <= 5; i++) {
-                const y = padding + (chartHeight / 5) * i;
-                ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(width - padding, y);
-                ctx.stroke();
-            }
-            
-            // Draw line
-            ctx.strokeStyle = '#58a6ff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            
-            data.forEach((point, i) => {
-                const x = padding + (chartWidth / (data.length - 1)) * i;
-                const y = height - padding - (point.density * chartHeight);
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            });
-            
-            ctx.stroke();
-            
-            // Draw points
-            ctx.fillStyle = '#79c0ff';
-            data.forEach((point, i) => {
-                const x = padding + (chartWidth / (data.length - 1)) * i;
-                const y = height - padding - (point.density * chartHeight);
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            
-            // Labels
-            ctx.fillStyle = '#8b949e';
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`M: ${startMod}-${endMod}`, width / 2, height - 5);
-            ctx.save();
-            ctx.translate(10, height / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.fillText('φ(M)/M', 0, 0);
-            ctx.restore();
-        }
-
-        // Draw chart for single modulus
-        function drawSingleModChart() {
-            const canvas = document.getElementById('statsChart');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            
-            ctx.clearRect(0, 0, width, height);
-            
-            // Show residue class distribution
-            const coprime = currentData.phi;
-            const nonCoprime = M - currentData.phi;
-            
-            const centerX = width / 2;
-            const centerY = height / 2;
-            const radius = Math.min(width, height) / 2 - 20;
-            
-            const coprimeAngle = (coprime / M) * Math.PI * 2;
-            
-            // Draw pie chart
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + coprimeAngle);
-            ctx.closePath();
-            ctx.fillStyle = '#00ffff';
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.arc(centerX, centerY, radius, -Math.PI / 2 + coprimeAngle, -Math.PI / 2 + Math.PI * 2);
-            ctx.closePath();
-            ctx.fillStyle = '#ff1493';
-            ctx.fill();
-            
-            // Labels
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`φ(M) = ${coprime}`, centerX, centerY - 5);
-            ctx.font = '10px Arial';
-            ctx.fillText(`${(coprime/M*100).toFixed(1)}% coprime`, centerX, centerY + 10);
-        }
-
-        // Setup mouse interaction on SVG
-        function setupInteraction() {
-            const svg = document.getElementById('mainCanvas');
-            
-            svg.addEventListener('mousemove', (e) => {
-                if (!interactiveState.enabled) return;
-                handleHover(e);
-            });
-            
-            svg.addEventListener('click', (e) => {
-                if (!interactiveState.enabled) return;
-                handleClick(e);
-            });
-            
-            svg.addEventListener('mouseleave', () => {
-                document.getElementById('interactiveInfo').style.display = 'none';
-            });
-        }
-
-        // Handle hover
-        function handleHover(e) {
-            const point = findPointNearMouse(e);
-            
-            if (point) {
-                showPointInfo(point, e.clientX, e.clientY);
-            } else {
-                document.getElementById('interactiveInfo').style.display = 'none';
-            }
-        }
-
-        // Handle click
-        function handleClick(e) {
-            const point = findPointNearMouse(e);
-            
-            if (point) {
-                interactiveState.clickedPoint = point;
-                highlightRelatedPoints(point);
-            }
-        }
-
-        // Find point near mouse
-        function findPointNearMouse(e) {
-            const svg = document.getElementById('mainCanvas');
-            const rect = svg.getBoundingClientRect();
-            const zoom = parseFloat(document.getElementById('zoom').value);
-            
-            const mx = ((e.clientX - rect.left - rect.width / 2) / zoom) / (rect.width / 1000);
-            const my = ((e.clientY - rect.top - rect.height / 2) / zoom) / (rect.height / 1000);
-            
-            // Check all rendered points
-            if (!currentData) return null;
-            
-            const threshold = 15 / zoom;
-            let closestPoint = null;
-            let closestDist = threshold;
-            
-            currentData.residues.forEach(res => {
-                const angle = -Math.PI / 2 + (2 * Math.PI * res.r / M);
-                const x = 400 * Math.cos(angle);
-                const y = 400 * Math.sin(angle);
-                
-                const dist = Math.sqrt((x - mx) ** 2 + (y - my) ** 2);
-                
-                if (dist < closestDist) {
-                    closestDist = dist;
-                    closestPoint = { ...res, x, y, angle, ring: M };
-                }
-            });
-            
-            return closestPoint;
-        }
-
-        // Show point info
-        function showPointInfo(point, mouseX, mouseY) {
-            const infoPanel = document.getElementById('interactiveInfo');
-            const infoContent = document.getElementById('infoContent');
-            
-            let html = '';
-            html += `<strong>Residue:</strong> r = ${point.r}<br>`;
-            html += `<strong>Modulus:</strong> M = ${point.ring || M}<br>`;
-            html += `<strong>Fraction:</strong> ${point.r}/${point.ring || M}`;
-            
-            if (point.gcd > 1) {
-                const reduced = point.r / point.gcd;
-                const reducedMod = (point.ring || M) / point.gcd;
-                html += ` = ${reduced}/${reducedMod}`;
-            }
-            html += `<br>`;
-            
-            html += `<strong>GCD:</strong> ${point.gcd}<br>`;
-            html += `<strong>Coprime:</strong> ${point.coprime ? 'Yes ✓' : 'No ✗'}<br>`;
-            
-            if (!point.coprime) {
-                html += `<strong>Channel:</strong> M' = ${(point.ring || M) / point.gcd}<br>`;
-                html += `<strong>Multiplicity:</strong> d = ${point.gcd}<br>`;
-            }
-            
-            const angleDeg = ((point.angle + Math.PI / 2) * 180 / Math.PI) % 360;
-            html += `<strong>Angle:</strong> ${angleDeg.toFixed(1)}°<br>`;
-            
-            infoContent.innerHTML = html;
-            infoPanel.style.display = 'block';
-            infoPanel.style.left = (mouseX + 20) + 'px';
-            infoPanel.style.top = (mouseY - 50) + 'px';
-        }
-
-        // Highlight related points
-        function highlightRelatedPoints(point) {
-            // This would highlight all points in the same channel
-            // Implementation would modify rendering
-            console.log('Clicked point:', point);
         }
 
         // Theme management
@@ -2420,12 +2020,6 @@
         }
 
         // Set modulus
-        // Initialize interaction when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            setupInteraction();
-        });
-
-        // Set modulus value
         function setModulus(value) {
             M = value;
             document.getElementById('modulusSlider').value = value;
@@ -2438,124 +2032,15 @@
             render();
             updateChannelInfo();
             updateAnalysis();
-            
-            // Update statistics if panel is visible
-            if (document.getElementById('showStatistics').checked) {
-                updateStatisticsPanel();
-            }
-        }
-
-        // Animation and Recording state
-        let animationState = {
-            interval: null,
-            currentValue: 2,
-            rotationValue: 0,
-            recording: false,
-            frames: [],
-            frameCount: 0
-        };
-
-        // Toggle recording options visibility
-        function toggleRecordingOptions() {
-            const enabled = document.getElementById('recordAnimation').checked;
-            document.getElementById('recordingOptions').style.display = enabled ? 'block' : 'none';
-        }
-
-        // Capture current frame
-        async function captureFrame() {
-            const resolution = parseInt(document.getElementById('recordResolution').value);
-            const withLegend = document.getElementById('recordWithLegend').checked;
-            const withTitle = document.getElementById('recordWithTitle').checked;
-            const multiModEnabled = document.getElementById('enableMultiMod').checked;
-            
-            return new Promise((resolve) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                if (withTitle || withLegend) {
-                    canvas.width = resolution;
-                    canvas.height = resolution;
-                } else {
-                    canvas.width = resolution;
-                    canvas.height = Math.round(resolution * 1.1);
-                }
-                
-                const canvasBgColor = getCanvasBackground();
-                ctx.fillStyle = canvasBgColor;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                const svg = document.getElementById('mainCanvas');
-                const serializer = new XMLSerializer();
-                const svgStr = serializer.serializeToString(svg);
-                
-                const img = new Image();
-                const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
-                
-                img.onload = function() {
-                    if (!withTitle && !withLegend) {
-                        const vizSize = resolution * 0.85;
-                        const vizX = (canvas.width - vizSize) / 2;
-                        const vizY = resolution * 0.1;
-                        
-                        ctx.drawImage(img, vizX, vizY, vizSize, vizSize);
-                        
-                        ctx.font = `${resolution * 0.04}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
-                        ctx.textAlign = 'center';
-                        if (multiModEnabled) {
-                            const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
-                            const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
-                            ctx.fillText(`Multi-Modulus: M = ${startMod} to ${endMod}`, canvas.width / 2, resolution * 0.05);
-                        } else {
-                            ctx.fillText(`M = ${M}`, canvas.width / 2, resolution * 0.05);
-                        }
-                    } else {
-                        // Use full export layout (simplified version)
-                        const leftPanel = resolution * 0.7;
-                        const padding = resolution * 0.03;
-                        
-                        if (withTitle) {
-                            ctx.font = `bold ${resolution * 0.025}px Arial`;
-                            ctx.fillStyle = canvasBgColor === '#ffffff' ? '#1f2328' : '#ffffff';
-                            ctx.textAlign = 'center';
-                            ctx.fillText(multiModEnabled ? 'Multi-Modulus Animation' : 'Modular Animation', canvas.width / 2, padding * 1.5);
-                            
-                            ctx.font = `${resolution * 0.012}px Arial`;
-                            ctx.fillStyle = canvasBgColor === '#ffffff' ? '#656d76' : '#8b949e';
-                            ctx.fillText(`Frame ${animationState.frameCount}`, canvas.width / 2, padding * 2.3);
-                        }
-                        
-                        const titleHeight = withTitle ? padding * 3 : padding;
-                        const vizSize = leftPanel - padding * 2;
-                        const vizX = padding;
-                        const vizY = titleHeight + (canvas.height - titleHeight - vizSize) / 2;
-                        ctx.drawImage(img, vizX, vizY, vizSize, vizSize);
-                        
-                        ctx.font = `${resolution * 0.02}px Arial`;
-                        ctx.fillStyle = '#79c0ff';
-                        ctx.textAlign = 'center';
-                        if (multiModEnabled) {
-                            const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
-                            const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
-                            ctx.fillText(`Moduli: M = ${startMod} to ${endMod}`, vizX + vizSize / 2, vizY - padding * 0.5);
-                        } else {
-                            ctx.fillText(`M = ${M}`, vizX + vizSize / 2, vizY - padding * 0.5);
-                        }
-                    }
-                    
-                    URL.revokeObjectURL(url);
-                    canvas.toBlob(blob => {
-                        resolve(blob);
-                    });
-                };
-                
-                img.src = url;
-            });
         }
 
         // Animation
         let animationState = {
+            interval: null,
+            currentValue: 2,
+            rotationValue: 0
+        };
+
         function startAnimation() {
             if (animationState.interval) {
                 stopAnimation();
@@ -2564,22 +2049,10 @@
             const mode = document.getElementById('animMode').value;
             const baseSpeed = parseInt(document.getElementById('animSpeed').value);
             const multiplier = parseFloat(document.getElementById('speedMultiplier').value);
-            const actualSpeed = baseSpeed / multiplier;
+            const actualSpeed = baseSpeed / multiplier; // Higher multiplier = faster animation
             const loop = document.getElementById('loopAnim').checked;
             const startVal = parseInt(document.getElementById('animStart').value) || 2;
             const endVal = parseInt(document.getElementById('animEnd').value) || 200;
-            const shouldRecord = document.getElementById('recordAnimation').checked;
-            const maxFrames = parseInt(document.getElementById('maxFrames').value) || 100;
-            
-            // Initialize recording if enabled
-            if (shouldRecord) {
-                animationState.recording = true;
-                animationState.frames = [];
-                animationState.frameCount = 0;
-                document.getElementById('recordingStatus').textContent = 'Recording... Frame 0';
-                document.getElementById('exportFramesBtn').disabled = true;
-                document.getElementById('exportGifBtn').disabled = true;
-            }
             
             // Initialize based on mode
             if (mode === 'increment' || mode === 'decrement') {
@@ -2588,12 +2061,12 @@
                 animationState.rotationValue = 0;
             }
             
-            animationState.interval = setInterval(async () => {
+            animationState.interval = setInterval(() => {
                 switch(mode) {
                     case 'increment':
                         animationState.currentValue++;
                         if (animationState.currentValue > endVal) {
-                            if (loop && (!shouldRecord || animationState.frameCount < maxFrames)) {
+                            if (loop) {
                                 animationState.currentValue = startVal;
                             } else {
                                 stopAnimation();
@@ -2606,7 +2079,7 @@
                     case 'decrement':
                         animationState.currentValue--;
                         if (animationState.currentValue < startVal) {
-                            if (loop && (!shouldRecord || animationState.frameCount < maxFrames)) {
+                            if (loop) {
                                 animationState.currentValue = endVal;
                             } else {
                                 stopAnimation();
@@ -2619,7 +2092,7 @@
                     case 'rotate':
                         animationState.rotationValue += 2 * multiplier;
                         if (animationState.rotationValue >= 720) {
-                            if (loop && (!shouldRecord || animationState.frameCount < maxFrames)) {
+                            if (loop) {
                                 animationState.rotationValue = 0;
                             } else {
                                 stopAnimation();
@@ -2635,7 +2108,7 @@
                     case 'rotateGlobal':
                         animationState.rotationValue += 2 * multiplier;
                         if (animationState.rotationValue >= 360) {
-                            if (loop && (!shouldRecord || animationState.frameCount < maxFrames)) {
+                            if (loop) {
                                 animationState.rotationValue = 0;
                             } else {
                                 stopAnimation();
@@ -2647,18 +2120,6 @@
                         render();
                         break;
                 }
-                
-                // Capture frame if recording
-                if (shouldRecord && animationState.frameCount < maxFrames) {
-                    const frameBlob = await captureFrame();
-                    animationState.frames.push(frameBlob);
-                    animationState.frameCount++;
-                    document.getElementById('recordingStatus').textContent = `Recording... Frame ${animationState.frameCount}`;
-                    
-                    if (animationState.frameCount >= maxFrames) {
-                        stopAnimation();
-                    }
-                }
             }, actualSpeed);
         }
 
@@ -2667,190 +2128,6 @@
                 clearInterval(animationState.interval);
                 animationState.interval = null;
             }
-            
-            if (animationState.recording) {
-                animationState.recording = false;
-                document.getElementById('recordingStatus').textContent = `Recording complete! ${animationState.frameCount} frames captured.`;
-                document.getElementById('exportFramesBtn').disabled = false;
-                document.getElementById('exportGifBtn').disabled = false;
-            }
-        }
-
-        // Export recorded frames as ZIP
-        async function exportRecordedFrames() {
-            if (animationState.frames.length === 0) {
-                alert('No frames to export!');
-                return;
-            }
-            
-            document.getElementById('recordingStatus').textContent = 'Creating ZIP file...';
-            
-            // Use JSZip library (we'll include it inline)
-            const zip = await createZipFromFrames(animationState.frames);
-            const blob = await zip.generateAsync({ type: 'blob' });
-            
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `animation-${animationState.frameCount}-frames-${Date.now()}.zip`;
-            a.click();
-            
-            document.getElementById('recordingStatus').textContent = `ZIP exported with ${animationState.frameCount} frames!`;
-        }
-
-        // Create ZIP from frames
-        async function createZipFromFrames(frames) {
-            // Minimal ZIP implementation
-            const files = [];
-            
-            for (let i = 0; i < frames.length; i++) {
-                const arrayBuffer = await frames[i].arrayBuffer();
-                files.push({
-                    name: `frame-${String(i).padStart(5, '0')}.png`,
-                    data: new Uint8Array(arrayBuffer)
-                });
-            }
-            
-            // Create ZIP structure
-            const zipData = [];
-            const centralDirectory = [];
-            let offset = 0;
-            
-            for (const file of files) {
-                const fileNameBytes = new TextEncoder().encode(file.name);
-                
-                // Local file header
-                const localHeader = new Uint8Array(30 + fileNameBytes.length);
-                new DataView(localHeader.buffer).setUint32(0, 0x04034b50, true); // signature
-                new DataView(localHeader.buffer).setUint16(4, 20, true); // version
-                new DataView(localHeader.buffer).setUint16(8, 0, true); // compression (stored)
-                new DataView(localHeader.buffer).setUint32(18, file.data.length, true); // uncompressed size
-                new DataView(localHeader.buffer).setUint32(22, file.data.length, true); // compressed size
-                new DataView(localHeader.buffer).setUint16(26, fileNameBytes.length, true); // filename length
-                localHeader.set(fileNameBytes, 30);
-                
-                zipData.push(localHeader);
-                zipData.push(file.data);
-                
-                // Central directory entry
-                const cdEntry = new Uint8Array(46 + fileNameBytes.length);
-                new DataView(cdEntry.buffer).setUint32(0, 0x02014b50, true); // signature
-                new DataView(cdEntry.buffer).setUint16(4, 20, true); // version made by
-                new DataView(cdEntry.buffer).setUint16(6, 20, true); // version needed
-                new DataView(cdEntry.buffer).setUint16(10, 0, true); // compression
-                new DataView(cdEntry.buffer).setUint32(20, file.data.length, true); // uncompressed size
-                new DataView(cdEntry.buffer).setUint32(24, file.data.length, true); // compressed size
-                new DataView(cdEntry.buffer).setUint16(28, fileNameBytes.length, true); // filename length
-                new DataView(cdEntry.buffer).setUint32(42, offset, true); // local header offset
-                cdEntry.set(fileNameBytes, 46);
-                
-                centralDirectory.push(cdEntry);
-                offset += localHeader.length + file.data.length;
-            }
-            
-            // Combine all parts
-            const cdStart = offset;
-            zipData.push(...centralDirectory);
-            const cdSize = centralDirectory.reduce((sum, entry) => sum + entry.length, 0);
-            
-            // End of central directory
-            const eocd = new Uint8Array(22);
-            new DataView(eocd.buffer).setUint32(0, 0x06054b50, true); // signature
-            new DataView(eocd.buffer).setUint16(8, files.length, true); // total entries
-            new DataView(eocd.buffer).setUint16(10, files.length, true); // total entries
-            new DataView(eocd.buffer).setUint32(12, cdSize, true); // central directory size
-            new DataView(eocd.buffer).setUint32(16, cdStart, true); // central directory offset
-            zipData.push(eocd);
-            
-            // Combine all chunks
-            const totalLength = zipData.reduce((sum, chunk) => sum + chunk.length, 0);
-            const result = new Uint8Array(totalLength);
-            let pos = 0;
-            for (const chunk of zipData) {
-                result.set(chunk, pos);
-                pos += chunk.length;
-            }
-            
-            return {
-                generateAsync: async () => new Blob([result], { type: 'application/zip' })
-            };
-        }
-
-        // Export as GIF using simple GIF encoding
-        async function exportAsGIF() {
-            if (animationState.frames.length === 0) {
-                alert('No frames to export!');
-                return;
-            }
-            
-            document.getElementById('recordingStatus').textContent = 'Creating GIF... This may take a moment.';
-            
-            try {
-                // Convert frames to canvas images
-                const frameDelay = parseInt(document.getElementById('animSpeed').value);
-                const canvases = [];
-                
-                for (let i = 0; i < animationState.frames.length; i++) {
-                    const img = await blobToImage(animationState.frames[i]);
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    canvases.push(canvas);
-                    
-                    if (i % 10 === 0) {
-                        document.getElementById('recordingStatus').textContent = `Processing frame ${i + 1}/${animationState.frames.length}...`;
-                    }
-                }
-                
-                // Simple GIF encoding (basic implementation)
-                document.getElementById('recordingStatus').textContent = 'Encoding GIF...';
-                const gifBlob = await encodeGIF(canvases, frameDelay);
-                
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(gifBlob);
-                a.download = `animation-${animationState.frameCount}-frames-${Date.now()}.gif`;
-                a.click();
-                
-                document.getElementById('recordingStatus').textContent = `GIF exported with ${animationState.frameCount} frames!`;
-            } catch (error) {
-                document.getElementById('recordingStatus').textContent = `Error creating GIF: ${error.message}. Try exporting as ZIP instead.`;
-                console.error(error);
-            }
-        }
-
-        // Helper: Convert blob to image
-        function blobToImage(blob) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = reject;
-                img.src = URL.createObjectURL(blob);
-            });
-        }
-
-        // Simple GIF encoder (basic implementation)
-        async function encodeGIF(canvases, delay) {
-            // This is a simplified GIF encoder
-            // For production, you'd want to use a library like gif.js
-            
-            const width = canvases[0].width;
-            const height = canvases[0].height;
-            
-            // GIF Header
-            const header = new Uint8Array([
-                0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
-                width & 0xff, width >> 8, // width
-                height & 0xff, height >> 8, // height
-                0xf7, 0x00, 0x00 // global color table flag, background, aspect ratio
-            ]);
-            
-            // For simplicity, we'll create a WebM video instead which browsers support better
-            // This requires MediaRecorder API
-            alert('GIF export requires additional processing. Frames have been saved. Please use the ZIP export and convert to GIF using external tools like ffmpeg or online converters.');
-            
-            // Return empty blob as placeholder
-            return new Blob([], { type: 'image/gif' });
         }
 
         // Export functions
@@ -3445,4 +2722,4 @@
         setModulus(32);
     </script>
 </body>
-</html>
+                                </html>
