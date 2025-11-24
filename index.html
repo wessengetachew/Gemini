@@ -3,689 +3,487 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modular Reduction Projection Research Portal v2.0</title>
+    <title>Modular Reduction Projection Explorer | Research Portal</title>
     <style>
-        :root {
-            --bg-dark: #0a0a0a;
-            --panel-bg: #141414;
-            --text-main: #e0e0e0;
-            --text-dim: #888;
-            --accent-cyan: #00ffff;
-            --accent-red: #ff1493;
-            --accent-gold: #ffd700;
-            --header-grad: linear-gradient(90deg, #240046, #4b0082);
-            --border-col: #333;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* HEADER */
-        header {
-            background: var(--header-grad);
-            padding: 15px 20px;
-            border-bottom: 1px solid #555;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        header h1 { font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
-
-        /* TABS */
-        .tabs {
-            display: flex;
-            background: #1a1a1a;
-            border-bottom: 1px solid var(--border-col);
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-right: 1px solid var(--border-col);
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            transition: 0.2s;
-        }
-        .tab:hover { background: #222; color: #fff; }
-        .tab.active { background: #333; color: var(--accent-cyan); border-bottom: 2px solid var(--accent-cyan); }
-
-        /* MAIN LAYOUT */
-        .main-container {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 90px);
-        }
-
-        /* VIZ AREA (LEFT) */
-        #viz-container {
-            flex: 7;
-            background: #000;
+        .header {
+            text-align: center;
+            padding: 80px 20px 40px;
             position: relative;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-right: 1px solid var(--border-col);
-        }
-        
-        /* Floating Info Box in Viz */
-        .info-overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
-            border: 1px solid #444;
-            border-radius: 4px;
-            pointer-events: none;
         }
 
-        /* CONTROLS (RIGHT) */
-        #controls-panel {
-            flex: 3;
-            background: var(--panel-bg);
-            overflow-y: auto;
-            padding: 20px;
-            min-width: 320px;
+        .title {
+            font-size: 3.5rem;
+            font-weight: 300;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #58a6ff 0%, #79c0ff 50%, #58a6ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
         }
 
-        .control-group {
-            background: #1a1a1a;
-            border: 1px solid var(--border-col);
-            border-radius: 6px;
-            padding: 15px;
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #8b949e;
+            font-weight: 300;
             margin-bottom: 15px;
         }
 
-        .control-group h3 {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin-bottom: 10px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
+        .author {
+            font-size: 1rem;
+            color: #6e7681;
+            margin-top: 10px;
         }
 
-        /* FORM ELEMENTS */
-        label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
-        
-        .row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
-        .btn-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-
-        input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-cyan); }
-        input[type="number"] {
-            background: #222; border: 1px solid #444; color: #fff;
-            padding: 5px; width: 80px; border-radius: 3px;
-        }
-        
-        button {
-            background: #333; border: 1px solid #444; color: #eee;
-            padding: 6px 12px; cursor: pointer; border-radius: 3px;
-            font-size: 0.8rem; transition: 0.2s;
-        }
-        button:hover { background: #444; border-color: #666; }
-        button.primary { background: #2a2a50; border-color: #4a4a80; }
-        button.active { background: var(--accent-cyan); color: #000; }
-
-        select {
-            background: #222; border: 1px solid #444; color: #fff;
-            padding: 5px; width: 100%; border-radius: 3px;
+        .author a {
+            color: #58a6ff;
+            text-decoration: none;
+            transition: color 0.3s;
         }
 
-        /* STATS GRID */
-        .stats-grid {
+        .author a:hover {
+            color: #79c0ff;
+        }
+
+        .portal-grid {
+            max-width: 1400px;
+            margin: 60px auto;
+            padding: 0 40px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1px;
-            background: #444;
-            border: 1px solid #444;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
         }
-        .stat-item { background: #1a1a1a; padding: 8px; font-size: 0.85rem; }
-        .stat-label { color: var(--text-dim); }
-        .stat-val { float: right; font-weight: bold; }
 
-        /* TOOLTIP */
-        #tooltip {
+        .portal-card {
+            background: linear-gradient(135deg, rgba(22, 27, 44, 0.9) 0%, rgba(30, 36, 56, 0.9) 100%);
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-card::before {
+            content: '';
             position: absolute;
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid var(--accent-cyan);
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #58a6ff 0%, #79c0ff 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .portal-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .portal-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(88, 166, 255, 0.5);
+            box-shadow: 0 20px 60px rgba(88, 166, 255, 0.15);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            font-weight: 400;
+            margin-bottom: 15px;
+            color: #79c0ff;
+        }
+
+        .card-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #8b949e;
+            margin-bottom: 20px;
+        }
+
+        .card-features {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .card-features li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 0.95rem;
+            color: #c9d1d9;
+        }
+
+        .card-features li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #58a6ff;
+            font-weight: bold;
+        }
+
+        .main-launch {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.15) 0%, rgba(121, 192, 255, 0.1) 100%);
+            border: 2px solid rgba(88, 166, 255, 0.4);
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .main-launch .card-title {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+        }
+
+        .launch-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, #58a6ff 0%, #79c0ff 100%);
+            color: #0a0e27;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(88, 166, 255, 0.3);
+        }
+
+        .launch-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(88, 166, 255, 0.4);
+        }
+
+        .math-notation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            color: #79c0ff;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 60px 20px 40px;
+            color: #6e7681;
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+        }
+
+        .footer-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            margin: 0 15px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #79c0ff;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-            display: none;
-            z-index: 100;
-            box-shadow: 0 0 10px rgba(0,255,255,0.2);
+            z-index: -1;
+            opacity: 0.03;
+        }
+
+        .animated-bg canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .portal-grid {
+                grid-template-columns: 1fr;
+                padding: 0 20px;
+            }
+
+            .main-launch .card-title {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
-
-<header>
-    <h1>Modular Reduction Projection Research Portal</h1>
-</header>
-
-<div class="tabs">
-    <div class="tab active">Portal</div>
-    <div class="tab">3D</div>
-    <div class="tab">Analysis</div>
-    <div class="tab">Sequences</div>
-    <div class="tab">Sieve</div>
-    <div class="tab">Compare</div>
-    <div class="tab">Theory</div>
-    <div class="tab">About</div>
-</div>
-
-<div class="main-container">
-    
-    <div id="viz-container">
-        <div class="info-overlay">
-            <div id="overlay-m" style="font-size: 1.2rem; font-weight: bold;">M = 32</div>
-            <div id="overlay-fact" style="color: #aaa; margin-top:5px;">2⁵</div>
-        </div>
-        <svg id="main-svg" width="100%" height="100%" viewBox="-500 -500 1000 1000" preserveAspectRatio="xMidYMid meet">
-            <defs>
-                <filter id="glow">
-                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-                    <feMerge>
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                </filter>
-            </defs>
-            <g id="scene-group">
-                </g>
-        </svg>
-        <div id="tooltip"></div>
+    <div class="animated-bg">
+        <canvas id="bgCanvas"></canvas>
     </div>
 
-    <div id="controls-panel">
-        
-        <div class="control-group">
-            <h3>Modulus Configuration</h3>
-            <div class="row">
-                <label>M = </label>
-                <input type="number" id="input-m" value="32" min="2" max="5000">
-            </div>
-            <input type="range" id="slider-m" min="2" max="500" value="32">
-            
-            <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">Presets:</div>
-            <div class="btn-row">
-                <button onclick="setM(12)">12</button>
-                <button onclick="setM(30)">30</button>
-                <button onclick="setM(60)">60</button>
-                <button onclick="setM(101)">101 (P)</button>
-                <button onclick="setM(210)">210</button>
-                <button onclick="setM(360)">360</button>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <h3>Display Options</h3>
-            <label><input type="checkbox" id="chk-lines" checked> Projection Lines (Gold)</label>
-            <label><input type="checkbox" id="chk-rings" checked> Channel Rings</label>
-            <label><input type="checkbox" id="chk-inner-points"> Inner Ring Points</label>
-            <label><input type="checkbox" id="chk-labels"> Show Point Labels</label>
-            
-            <div style="margin-top: 10px;">
-                <label>Highlight Constellation:</label>
-                <select id="sel-constellation">
-                    <option value="none">None</option>
-                    <option value="twin">Twin Primes (gap=2)</option>
-                    <option value="cousin">Cousin Primes (gap=4)</option>
-                    <option value="sexy">Sexy Primes (gap=6)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <h3>Animation</h3>
-            <div class="btn-row">
-                <button id="btn-play">▶ Play</button>
-                <button id="btn-stop">⏸ Stop</button>
-            </div>
-            <div class="row">
-                <label>Speed:</label>
-                <input type="range" id="anim-speed" min="50" max="2000" value="500">
-            </div>
-            <label><input type="checkbox" id="chk-loop" checked> Loop (Increment M)</label>
-        </div>
-
-        <div class="control-group">
-            <h3>View Controls</h3>
-            <div class="row">
-                <label>Zoom:</label>
-                <input type="range" id="slider-zoom" min="0.1" max="5" step="0.1" value="1">
-            </div>
-            <div class="row">
-                <label>Rotate:</label>
-                <input type="range" id="slider-rotate" min="0" max="360" value="0">
-            </div>
-        </div>
-
-        <div class="control-group">
-            <h3>Statistics</h3>
-            <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">Modulus M</span><span class="stat-val" id="stat-m">32</span></div>
-                <div class="stat-item"><span class="stat-label">φ(M)</span><span class="stat-val" id="stat-phi">16</span></div>
-                <div class="stat-item"><span class="stat-label">Density</span><span class="stat-val" id="stat-density">50%</span></div>
-                <div class="stat-item"><span class="stat-label">Channels</span><span class="stat-val" id="stat-channels">6</span></div>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <h3>Data Export</h3>
-            <div class="btn-row">
-                <button id="btn-png">PNG Image</button>
-                <button id="btn-csv">CSV Data</button>
-                <button id="btn-json">JSON</button>
-            </div>
-        </div>
-
+    <div class="header">
+        <h1 class="title">Modular Reduction Projection Explorer</h1>
+        <p class="subtitle">Interactive Visualizations of Number Theory & Modular Arithmetic</p>
+        <p class="author">
+            Research by <a href="https://wessengetachew.github.io" target="_blank">Wessen Getachew</a> 
+            | <a href="https://twitter.com/7dview" target="_blank">@7dview</a>
+        </p>
     </div>
-</div>
 
-<script>
-/**
- * CORE LOGIC FOR MODULAR PORTAL
- */
+    <div class="portal-grid">
+        <div class="portal-card main-launch" onclick="launchMainPortal()">
+            <div class="card-icon">⊕</div>
+            <h2 class="card-title">Interactive Portal</h2>
+            <p class="card-description">
+                Explore the structure of <span class="math-notation">ℤ/Mℤ</span> through interactive circular visualizations. 
+                See how residues project onto inner rings based on GCD relationships and discover patterns in modular arithmetic.
+            </p>
+            <button class="launch-button">Launch Main Explorer →</button>
+            <ul class="card-features">
+                <li>Real-time visualization of modular spaces up to M = 10,000</li>
+                <li>Farey projection channels showing residue reduction</li>
+                <li>Multiple color schemes and labeling modes</li>
+                <li>Export to PNG, CSV, JSON, and LaTeX</li>
+            </ul>
+        </div>
 
-// State Management
-const state = {
-    M: 32,
-    radius: 400,
-    zoom: 1.0,
-    rotation: 0,
-    showLines: true,
-    showRings: true,
-    showInnerPoints: false,
-    showLabels: false,
-    constellation: 'none',
-    isPlaying: false,
-    animationInterval: null,
-    speed: 500
-};
+        <div class="portal-card" onclick="launchSection('3d')">
+            <div class="card-icon">◯</div>
+            <h2 class="card-title">3D Visualization</h2>
+            <p class="card-description">
+                View modular structures in three dimensions with rotating sphere representations and depth-based projections.
+            </p>
+            <ul class="card-features">
+                <li>Spherical coordinate mapping</li>
+                <li>Interactive rotation controls</li>
+                <li>Depth-based color gradients</li>
+            </ul>
+        </div>
 
-// DOM Elements
-const svg = document.getElementById('main-svg');
-const group = document.getElementById('scene-group');
-const tooltip = document.getElementById('tooltip');
+        <div class="portal-card" onclick="launchSection('analysis')">
+            <div class="card-icon">📊</div>
+            <h2 class="card-title">Pattern Analysis</h2>
+            <p class="card-description">
+                Analyze coprime density patterns, compute <span class="math-notation">φ(M)</span>, 
+                and explore number-theoretic properties.
+            </p>
+            <ul class="card-features">
+                <li>Euler totient function computations</li>
+                <li>Prime factorization analysis</li>
+                <li>Density distribution charts</li>
+            </ul>
+        </div>
 
-// Math Helpers
-const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+        <div class="portal-card" onclick="launchSection('sequences')">
+            <div class="card-icon">∞</div>
+            <h2 class="card-title">Sequence Explorer</h2>
+            <p class="card-description">
+                Generate and analyze integer sequences including primorials, factorials, and highly composite numbers.
+            </p>
+            <ul class="card-features">
+                <li>Primorial sequences (2·3·5·7...)</li>
+                <li>Factorial progressions</li>
+                <li>Custom sequence generation</li>
+            </ul>
+        </div>
 
-const getFactors = (n) => {
-    const factors = [];
-    for(let i=1; i<=n; i++) {
-        if(n % i === 0) factors.push(i);
-    }
-    return factors;
-};
+        <div class="portal-card" onclick="launchSection('sieve')">
+            <div class="card-icon">π</div>
+            <h2 class="card-title">Modular Sieve Calculator</h2>
+            <p class="card-description">
+                Compute <span class="math-notation">π</span> and <span class="math-notation">ζ(2n)</span> 
+                using Euler product decompositions.
+            </p>
+            <ul class="card-features">
+                <li>Euler product formula implementation</li>
+                <li>High-precision arithmetic</li>
+                <li>Convergence visualization</li>
+            </ul>
+        </div>
 
-const getPrimeFactors = (n) => {
-    const factors = {};
-    let d = 2;
-    let temp = n;
-    while (d * d <= temp) {
-        while (temp % d === 0) {
-            factors[d] = (factors[d] || 0) + 1;
-            temp /= d;
+        <div class="portal-card" onclick="launchSection('compare')">
+            <div class="card-icon">⇄</div>
+            <h2 class="card-title">Modulus Comparison</h2>
+            <p class="card-description">
+                Compare multiple moduli side-by-side to identify structural patterns and relationships.
+            </p>
+            <ul class="card-features">
+                <li>Multi-modulus grid layouts</li>
+                <li>Difference highlighting</li>
+                <li>Batch analysis tools</li>
+            </ul>
+        </div>
+
+        <div class="portal-card" onclick="launchSection('theory')">
+            <div class="card-icon">∫</div>
+            <h2 class="card-title">Mathematical Theory</h2>
+            <p class="card-description">
+                Explore the mathematical foundations including Farey sequences, totient functions, 
+                and connections to the Riemann Hypothesis.
+            </p>
+            <ul class="card-features">
+                <li>Detailed mathematical proofs</li>
+                <li>Interactive theorem demonstrations</li>
+                <li>Research notes and insights</li>
+            </ul>
+        </div>
+
+        <div class="portal-card" onclick="launchSection('about')">
+            <div class="card-icon">ℹ</div>
+            <h2 class="card-title">About & Documentation</h2>
+            <p class="card-description">
+                Learn about the project, access comprehensive documentation, and explore usage examples.
+            </p>
+            <ul class="card-features">
+                <li>Complete feature documentation</li>
+                <li>Tutorial workflows</li>
+                <li>Keyboard shortcuts reference</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Built with pure HTML5, CSS3, and JavaScript. No external dependencies.</p>
+        <div class="footer-links">
+            <a href="https://wessengetachew.github.io" target="_blank">Website</a>
+            <a href="https://github.com/wessengetachew" target="_blank">GitHub</a>
+            <a href="https://twitter.com/7dview" target="_blank">Twitter</a>
+        </div>
+        <p style="margin-top: 20px; font-size: 0.85rem;">© 2024 Wessen Getachew. Mathematical research portal for exploring number theory.</p>
+    </div>
+
+    <script>
+        // Animated background with modular arithmetic patterns
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-        d++;
-    }
-    if (temp > 1) factors[temp] = (factors[temp] || 0) + 1;
-    
-    // Format string 2^5 etc
-    return Object.entries(factors).map(([p, exp]) => exp > 1 ? `${p}^${exp}` : `${p}`).join(' × ');
-};
-
-const getPhi = (n) => {
-    let result = n;
-    for (let i = 2; i * i <= n; i++) {
-        if (n % i === 0) {
-            while (n % i === 0) n /= i;
-            result -= result / i;
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        const points = [];
+        const numPoints = 50;
+        const M = 30;
+        
+        for (let i = 0; i < numPoints; i++) {
+            const angle = (i / numPoints) * Math.PI * 2;
+            points.push({
+                x: Math.cos(angle),
+                y: Math.sin(angle),
+                originalAngle: angle,
+                speed: 0.0002 + Math.random() * 0.0003,
+                gcd: gcd(i, M)
+            });
         }
-    }
-    if (n > 1) result -= result / n;
-    return result;
-};
-
-// --- RENDERING ENGINE ---
-
-function render() {
-    // Clear Scene
-    group.innerHTML = '';
-    
-    // Apply View Transforms
-    group.setAttribute('transform', `scale(${state.zoom}) rotate(${state.rotation})`);
-    
-    // 1. Draw Inner Rings (Farey Channels)
-    const divisors = getFactors(state.M);
-    
-    if (state.showRings) {
-        divisors.forEach(d => {
-            // M' = d. Radius scaled by d/M
-            // Actually, based on readme: M' = M/gcd.
-            // The readme says: Radius = 400 * (M'/M). 
-            // M' are the divisors.
-            
-            const r = state.radius * (d / state.M);
-            
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("r", r);
-            circle.setAttribute("fill", "none");
-            circle.setAttribute("stroke", "#333");
-            circle.setAttribute("stroke-width", "1");
-            if (d === state.M) circle.setAttribute("stroke", "#666"); // Outer ring
-            group.appendChild(circle);
-        });
-    }
-
-    // 2. Calculate Residues
-    const points = [];
-    const phi = getPhi(state.M);
-    let primes = []; // For constellation highlighting (coprimes essentially act as "primes" in residue systems context for visualization purposes, or we check actual primality)
-    
-    for (let r = 0; r < state.M; r++) {
-        const g = gcd(r, state.M);
-        const isCoprime = g === 1;
         
-        // M' (Channel) logic: Where does it project?
-        const mPrime = state.M / g; 
-        const rPrime = r / g;
-        
-        // Coordinates on Outer Ring
-        const theta = -Math.PI / 2 + (2 * Math.PI * r / state.M);
-        const x = state.radius * Math.cos(theta);
-        const y = state.radius * Math.sin(theta);
-        
-        // Inner projection coordinates
-        const r_inner = state.radius * (mPrime / state.M);
-        const x_in = r_inner * Math.cos(theta);
-        const y_in = r_inner * Math.sin(theta);
-
-        points.push({ r, g, isCoprime, x, y, x_in, y_in, mPrime, theta });
-        
-        if (isCoprime) primes.push(r);
-    }
-
-    // 3. Draw Projection Lines (Background layer)
-    if (state.showLines) {
-        points.forEach(p => {
-            if (!p.isCoprime && p.g < state.M) {
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", p.x);
-                line.setAttribute("y1", p.y);
-                line.setAttribute("x2", p.x_in);
-                line.setAttribute("y2", p.y_in);
-                line.setAttribute("stroke", "#ffd700"); // Gold
-                line.setAttribute("stroke-opacity", "0.3");
-                line.setAttribute("stroke-width", "1");
-                group.appendChild(line);
+        function gcd(a, b) {
+            while (b) {
+                const temp = b;
+                b = a % b;
+                a = temp;
             }
+            return a;
+        }
+        
+        let time = 0;
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.4;
+            
+            time += 0.5;
+            
+            for (let i = 0; i < points.length; i++) {
+                const p = points[i];
+                const angle = p.originalAngle + time * p.speed;
+                
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                const alpha = p.gcd === 1 ? 0.8 : 0.3;
+                const color = p.gcd === 1 ? '88, 166, 255' : '255, 20, 147';
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${color}, ${alpha})`;
+                ctx.fill();
+                
+                // Draw connections
+                if (p.gcd > 1 && i % 3 === 0) {
+                    const innerRadius = radius * (M / (M / p.gcd)) / M;
+                    const innerX = centerX + Math.cos(angle) * innerRadius;
+                    const innerY = centerY + Math.sin(angle) * innerRadius;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(innerX, innerY);
+                    ctx.strokeStyle = `rgba(255, 215, 0, 0.1)`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        function launchMainPortal() {
+            alert('Launching Interactive Portal...\n\nIn production, this would open: modular-research-portal-v2.html');
+            // window.location.href = 'modular-research-portal-v2.html';
+        }
+        
+        function launchSection(section) {
+            alert(`Launching ${section.toUpperCase()} section...\n\nIn production, this would open: modular-research-portal-v2.html#${section}`);
+            // window.location.href = `modular-research-portal-v2.html#${section}`;
+        }
+        
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
-    }
-
-    // 4. Draw Points
-    points.forEach(p => {
-        // Determine Highlight
-        let isHighlighted = false;
-        if (state.constellation !== 'none' && p.isCoprime) {
-            const gap = { 'twin': 2, 'cousin': 4, 'sexy': 6 }[state.constellation];
-            // Check if r+gap or r-gap is also coprime (simple visualization check)
-            const hasUpper = primes.includes(p.r + gap);
-            const hasLower = primes.includes(p.r - gap);
-            if(hasUpper || hasLower) isHighlighted = true;
-        }
-
-        // Draw Circle
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", p.x);
-        circle.setAttribute("cy", p.y);
-        
-        if (p.isCoprime) {
-            circle.setAttribute("r", isHighlighted ? 8 : 6);
-            circle.setAttribute("fill", isHighlighted ? "#fff" : "#00ffff"); // Cyan or White highlight
-            if(isHighlighted) circle.setAttribute("filter", "url(#glow)");
-        } else {
-            circle.setAttribute("r", 4);
-            circle.setAttribute("fill", "#ff1493"); // Red
-        }
-        
-        // Tooltip Events
-        circle.addEventListener('mouseover', (e) => showTooltip(e, p));
-        circle.addEventListener('mouseout', hideTooltip);
-        
-        group.appendChild(circle);
-
-        // Inner Points (Optional)
-        if (state.showInnerPoints && !p.isCoprime && p.g < state.M) {
-            const innerDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            innerDot.setAttribute("cx", p.x_in);
-            innerDot.setAttribute("cy", p.y_in);
-            innerDot.setAttribute("r", 2);
-            innerDot.setAttribute("fill", "#888");
-            group.appendChild(innerDot);
-        }
-
-        // Labels
-        if (state.showLabels) {
-            // Only label every Nth point if M is huge
-            if (state.M > 100 && p.r % 5 !== 0) return;
-
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            // Position text slightly outside
-            const labelDist = 1.1;
-            text.setAttribute("x", p.x * labelDist);
-            text.setAttribute("y", p.y * labelDist);
-            text.setAttribute("fill", p.isCoprime ? "#00ffff" : "#ff1493");
-            text.setAttribute("font-size", "12");
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("alignment-baseline", "middle");
-            text.textContent = p.r;
-            // Rotate text to be readable? No, readme implies simple placement.
-            group.appendChild(text);
-        }
-    });
-
-    // Update Stats Panel
-    updateStats(points, phi, divisors.length);
-}
-
-// --- STATS & UI UPDATES ---
-
-function updateStats(points, phi, channels) {
-    document.getElementById('stat-m').textContent = state.M;
-    document.getElementById('stat-phi').textContent = phi;
-    document.getElementById('stat-density').textContent = ((phi / state.M) * 100).toFixed(1) + '%';
-    document.getElementById('stat-channels').textContent = channels;
-    
-    // Overlay Info
-    document.getElementById('overlay-m').textContent = `M = ${state.M}`;
-    document.getElementById('overlay-fact').textContent = getPrimeFactors(state.M);
-}
-
-function showTooltip(e, p) {
-    tooltip.style.display = 'block';
-    tooltip.style.left = (e.pageX + 15) + 'px';
-    tooltip.style.top = (e.pageY + 15) + 'px';
-    tooltip.innerHTML = `
-        <strong>Residue: ${p.r}</strong><br>
-        GCD(r,M): ${p.g}<br>
-        Type: <span style="color:${p.isCoprime?'#00ffff':'#ff1493'}">${p.isCoprime?'Coprime':'Reducible'}</span><br>
-        Channel M': ${p.mPrime}<br>
-        Angle: ${(p.theta * 180/Math.PI + 90).toFixed(1)}°
-    `;
-}
-
-function hideTooltip() {
-    tooltip.style.display = 'none';
-}
-
-function setM(val) {
-    state.M = parseInt(val);
-    document.getElementById('input-m').value = state.M;
-    document.getElementById('slider-m').value = state.M;
-    render();
-}
-
-// --- EXPORT FUNCTIONALITY ---
-
-function exportPNG() {
-    // Simple serialize SVG to Canvas to PNG
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    
-    // Set resolution
-    canvas.width = 2000;
-    canvas.height = 2000;
-    
-    img.onload = function() {
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const a = document.createElement("a");
-        a.download = `modular-M${state.M}.png`;
-        a.href = canvas.toDataURL("image/png");
-        a.click();
-    };
-    
-    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-}
-
-function exportCSV() {
-    let csv = "r,M,gcd,coprime,m_prime,angle_deg\n";
-    for(let r=0; r<state.M; r++) {
-        const g = gcd(r, state.M);
-        const angle = (r/state.M) * 360;
-        csv += `${r},${state.M},${g},${g===1},${state.M/g},${angle}\n`;
-    }
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `data-M${state.M}.csv`;
-    a.click();
-}
-
-// --- EVENT LISTENERS ---
-
-document.getElementById('slider-m').addEventListener('input', (e) => {
-    state.M = parseInt(e.target.value);
-    document.getElementById('input-m').value = state.M;
-    render();
-});
-
-document.getElementById('input-m').addEventListener('change', (e) => {
-    let val = parseInt(e.target.value);
-    if(val < 2) val = 2;
-    setM(val);
-});
-
-document.getElementById('chk-lines').addEventListener('change', (e) => {
-    state.showLines = e.target.checked;
-    render();
-});
-document.getElementById('chk-rings').addEventListener('change', (e) => {
-    state.showRings = e.target.checked;
-    render();
-});
-document.getElementById('chk-inner-points').addEventListener('change', (e) => {
-    state.showInnerPoints = e.target.checked;
-    render();
-});
-document.getElementById('chk-labels').addEventListener('change', (e) => {
-    state.showLabels = e.target.checked;
-    render();
-});
-document.getElementById('sel-constellation').addEventListener('change', (e) => {
-    state.constellation = e.target.value;
-    render();
-});
-
-// View Controls
-document.getElementById('slider-zoom').addEventListener('input', (e) => {
-    state.zoom = parseFloat(e.target.value);
-    render();
-});
-document.getElementById('slider-rotate').addEventListener('input', (e) => {
-    state.rotation = parseInt(e.target.value);
-    render();
-});
-
-// Animation
-document.getElementById('btn-play').addEventListener('click', () => {
-    if(state.isPlaying) return;
-    state.isPlaying = true;
-    state.animationInterval = setInterval(() => {
-        if(document.getElementById('chk-loop').checked) {
-            // Increment M
-            let next = state.M + 1;
-            if(next > 500) next = 2;
-            setM(next);
-        } else {
-            // Rotate
-            state.rotation = (state.rotation + 1) % 360;
-            document.getElementById('slider-rotate').value = state.rotation;
-            render();
-        }
-    }, parseInt(document.getElementById('anim-speed').value));
-});
-
-document.getElementById('btn-stop').addEventListener('click', () => {
-    state.isPlaying = false;
-    clearInterval(state.animationInterval);
-});
-
-document.getElementById('anim-speed').addEventListener('input', (e) => {
-    // If playing, restart with new speed
-    if(state.isPlaying) {
-        document.getElementById('btn-stop').click();
-        document.getElementById('btn-play').click();
-    }
-});
-
-// Export
-document.getElementById('btn-png').addEventListener('click', exportPNG);
-document.getElementById('btn-csv').addEventListener('click', exportCSV);
-document.getElementById('btn-json').addEventListener('click', () => {
-    const data = { M: state.M, phi: getPhi(state.M), residues: [] };
-    alert("JSON structure prepared (Download logic similar to CSV)");
-});
-
-// Drag to Pan (Basic implementation)
-let isDragging = false;
-let startX, startY;
-let viewBoxX = -500, viewBoxY = -500;
-
-svg.addEventListener('mousedown', e => {
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-});
-window.addEventListener('mouseup', () => isDragging = false);
-svg.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    // Simple pan by adjusting viewBox is tricky with zoom. 
-    // For this demo, we'll skip complex pan logic to keep code concise.
-});
-
-// Init
-render();
-
-</script>
+    </script>
 </body>
 </html>
-
-
-Would
