@@ -452,6 +452,10 @@
                     <input type="checkbox" id="showAllRingPoints" checked onchange="render()">
                     <label for="showAllRingPoints">Show All Ring Points</label>
                 </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="invertMode" onchange="render()">
+                    <label for="invertMode">Invert Mode (Inner↔Outer)</label>
+                </div>
                 <div class="control-group">
                     <label class="control-label">Point Color Mode</label>
                     <select id="pointColorMode" onchange="render()">
@@ -495,6 +499,60 @@
                         <option value="coprime">Coprime Only</option>
                         <option value="noncoprime">Non-coprime Only</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- MULTI-MODULUS VIEW -->
+            <div class="control-section">
+                <h3>Multi-Modulus View</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enableMultiMod" onchange="toggleMultiMod()">
+                    <label for="enableMultiMod">Enable Multi-Modulus Mode</label>
+                </div>
+                <div id="multiModControls" style="display: none;">
+                    <div class="control-group">
+                        <label class="control-label">Modulus Range</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="number" id="multiModStart" min="1" max="1000" value="1" placeholder="Start">
+                            <input type="number" id="multiModEnd" min="1" max="1000" value="30" placeholder="End">
+                        </div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showRtoRConnections" onchange="render()">
+                        <label for="showRtoRConnections">Show r-to-r Connections</label>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Gap Connections (2n) <span class="value-display" id="gapSizeValue">2</span>
+                        </label>
+                        <input type="range" id="gapSize" min="1" max="20" value="2" onchange="render()">
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showGapConnections" onchange="render()">
+                        <label for="showGapConnections">Show Gap Connections (r to r+2n)</label>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Connection Color Mode</label>
+                        <select id="connectionColorMode" onchange="render()">
+                            <option value="bygap">Color by Gap</option>
+                            <option value="bymod">Color by Modulus</option>
+                            <option value="solid">Solid Color</option>
+                            <option value="rainbow">Rainbow</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Connection Opacity <span class="value-display" id="connOpacityValue">50</span>%
+                        </label>
+                        <input type="range" id="connOpacity" min="0" max="100" value="50" onchange="render()">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Ring Spacing <span class="value-display" id="ringSpacingValue">1.0</span>
+                        </label>
+                        <input type="range" id="ringSpacing" min="0.5" max="3.0" step="0.1" value="1.0" onchange="render()">
+                    </div>
+                    <button class="preset-btn" onclick="render()" style="width: 100%; margin-top: 10px;">Apply Multi-Mod View</button>
                 </div>
             </div>
 
@@ -817,6 +875,13 @@
             };
         }
 
+        // Toggle multi-modulus mode
+        function toggleMultiMod() {
+            const enabled = document.getElementById('enableMultiMod').checked;
+            document.getElementById('multiModControls').style.display = enabled ? 'block' : 'none';
+            render();
+        }
+
         // Get color for point based on mode
         function getPointColor(residue, ring, ringIndex, mode) {
             const { r, coprime, gcd: g } = residue;
@@ -868,6 +933,20 @@
             const svg = document.getElementById('mainCanvas');
             svg.innerHTML = '';
 
+            const multiModEnabled = document.getElementById('enableMultiMod').checked;
+            
+            if (multiModEnabled) {
+                renderMultiModulus();
+            } else {
+                renderSingleModulus();
+            }
+            
+            updateStatistics();
+        }
+
+        // Render single modulus mode
+        function renderSingleModulus() {
+            const svg = document.getElementById('mainCanvas');
             const zoom = parseFloat(document.getElementById('zoom').value);
             const rotation = parseFloat(document.getElementById('rotation').value);
             const ringRotation = parseFloat(document.getElementById('ringRotation').value);
@@ -877,6 +956,7 @@
             const showProjections = document.getElementById('showProjections').checked;
             const showChannels = document.getElementById('showChannels').checked;
             const showAllRingPoints = document.getElementById('showAllRingPoints').checked;
+            const invertMode = document.getElementById('invertMode').checked;
             const pointColorMode = document.getElementById('pointColorMode').value;
             const fareyColorMode = document.getElementById('fareyColorMode').value;
             const fareyThickness = parseFloat(document.getElementById('fareyThickness').value);
@@ -890,29 +970,27 @@
             const labelEveryNInner = parseInt(document.getElementById('labelEveryNInner').value);
             const filterMode = document.getElementById('filterMode').value;
 
-            // Convert ring rotation to radians
             const ringRotRad = (ringRotation * Math.PI) / 180;
 
-            // Create main group with transform
             const mainG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             mainG.setAttribute('transform', `scale(${zoom}) rotate(${rotation})`);
 
-            // Build ring structure: for each divisor of M, create a ring
+            // Build ring structure
             const divisors = [];
             for (let d = 1; d <= M; d++) {
                 if (M % d === 0) divisors.push(d);
             }
             
-            const sortedDivisors = [...divisors].sort((a, b) => a - b);
+            const sortedDivisors = [...divisors].sort((a, b) => invertMode ? b - a : a - b);
             const ringIndexMap = {};
             sortedDivisors.forEach((d, idx) => {
                 ringIndexMap[d] = idx;
             });
 
-            // Draw channel rings with per-ring rotation
+            // Draw channel rings
             if (showChannels) {
                 sortedDivisors.forEach((d, ringIndex) => {
-                    const radius = 400 * (d / M);
+                    const radius = invertMode ? 400 * (M / d) : 400 * (d / M);
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     circle.setAttribute('cx', 0);
                     circle.setAttribute('cy', 0);
@@ -928,7 +1006,7 @@
             // Calculate all points on all rings
             const allRingPoints = [];
             sortedDivisors.forEach((divisor, ringIndex) => {
-                const radius = 400 * (divisor / M);
+                const radius = invertMode ? 400 * (M / divisor) : 400 * (divisor / M);
                 const ringRotationAngle = ringRotRad * ringIndex;
                 
                 for (let k = 0; k < divisor; k++) {
@@ -955,16 +1033,15 @@
                 }
             });
 
-            // Draw Farey projection lines first (so they're behind points)
+            // Draw Farey projection lines
             if (showProjections) {
                 allRingPoints.forEach(point => {
                     if (point.gcd > 1) {
-                        // Find target ring (channel)
                         const targetRing = point.channel;
                         const targetRingIndex = ringIndexMap[targetRing];
                         
                         if (targetRingIndex !== undefined) {
-                            const targetRadius = 400 * (targetRing / M);
+                            const targetRadius = invertMode ? 400 * (M / targetRing) : 400 * (targetRing / M);
                             const targetRotation = ringRotRad * targetRingIndex;
                             const targetAngle = point.baseAngle + targetRotation;
                             const targetX = targetRadius * Math.cos(targetAngle);
@@ -984,10 +1061,9 @@
                 });
             }
 
-            // Draw all points on all rings
+            // Draw all points
             if (showAllRingPoints) {
                 allRingPoints.forEach(point => {
-                    // Apply filter only to outer ring
                     if (point.ring === M) {
                         if (filterMode === 'coprime' && !point.coprime) return;
                         if (filterMode === 'noncoprime' && point.coprime) return;
@@ -1009,20 +1085,16 @@
             // Draw labels
             if (showLabels) {
                 allRingPoints.forEach((point, idx) => {
-                    // Decide if we should label this point
-                    const isOuterRing = point.ring === M;
+                    const isOuterRing = invertMode ? (point.ring === 1) : (point.ring === M);
                     const shouldLabelRing = isOuterRing || labelAllRings;
                     
                     if (!shouldLabelRing) return;
                     
-                    // Apply Nth point filter
                     const nthFilter = isOuterRing ? labelEveryN : labelEveryNInner;
                     if (point.r % nthFilter !== 0) return;
                     
-                    // Apply coprime filter
                     if (labelCoprimeOnly && !point.coprime) return;
                     
-                    // Apply general filter only to outer ring
                     if (isOuterRing) {
                         if (filterMode === 'coprime' && !point.coprime) return;
                         if (filterMode === 'noncoprime' && point.coprime) return;
@@ -1050,7 +1122,6 @@
                             break;
                     }
                     
-                    // Position label OUTSIDE the ring
                     const labelRadius = point.radius + (labelDist * 20);
                     const labelX = labelRadius * Math.cos(point.angle);
                     const labelY = labelRadius * Math.sin(point.angle);
@@ -1074,8 +1145,7 @@
             
             if (showAngleOverlay && showAllRingPoints) {
                 allRingPoints.forEach((point, idx) => {
-                    // Only show angle overlay for every Nth point to avoid clutter
-                    const isOuterRing = point.ring === M;
+                    const isOuterRing = invertMode ? (point.ring === 1) : (point.ring === M);
                     const nthFilter = isOuterRing ? labelEveryN * 2 : labelEveryNInner * 2;
                     if (point.r % nthFilter !== 0) return;
                     
@@ -1095,7 +1165,6 @@
                             break;
                     }
                     
-                    // Position text slightly inside the ring
                     const textRadius = point.radius * 0.85;
                     const textX = textRadius * Math.cos(point.angle);
                     const textY = textRadius * Math.sin(point.angle);
@@ -1115,9 +1184,165 @@
             }
 
             svg.appendChild(mainG);
-            updateStatistics();
         }
 
+        // Render multi-modulus mode
+        function renderMultiModulus() {
+            const svg = document.getElementById('mainCanvas');
+            const zoom = parseFloat(document.getElementById('zoom').value);
+            const rotation = parseFloat(document.getElementById('rotation').value);
+            const ringRotation = parseFloat(document.getElementById('ringRotation').value);
+            const pointSize = parseFloat(document.getElementById('pointSize').value);
+            const opacity = parseFloat(document.getElementById('opacity').value) / 100;
+            const pointColorMode = document.getElementById('pointColorMode').value;
+            const showRtoR = document.getElementById('showRtoRConnections').checked;
+            const showGapConn = document.getElementById('showGapConnections').checked;
+            const gapSize = parseInt(document.getElementById('gapSize').value);
+            const connColorMode = document.getElementById('connectionColorMode').value;
+            const connOpacity = parseFloat(document.getElementById('connOpacity').value) / 100;
+            const ringSpacing = parseFloat(document.getElementById('ringSpacing').value);
+            const filterMode = document.getElementById('filterMode').value;
+            const invertMode = document.getElementById('invertMode').checked;
+
+            const startMod = parseInt(document.getElementById('multiModStart').value) || 1;
+            const endMod = parseInt(document.getElementById('multiModEnd').value) || 30;
+
+            const ringRotRad = (ringRotation * Math.PI) / 180;
+
+            const mainG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            mainG.setAttribute('transform', `scale(${zoom}) rotate(${rotation})`);
+
+            // Calculate all moduli and their coprime points
+            const allModuliData = [];
+            for (let m = startMod; m <= endMod; m++) {
+                const modIndex = m - startMod;
+                const radius = invertMode ? 
+                    400 - (modIndex * 400 / (endMod - startMod + 1)) * ringSpacing :
+                    (modIndex + 1) * (400 / (endMod - startMod + 1)) * ringSpacing;
+                
+                const ringRot = ringRotRad * modIndex;
+                const points = [];
+                
+                for (let r = 0; r < m; r++) {
+                    const g = gcd(r, m);
+                    const coprime = g === 1;
+                    
+                    // Filter
+                    if (filterMode === 'coprime' && !coprime) continue;
+                    if (filterMode === 'noncoprime' && coprime) continue;
+                    
+                    const baseAngle = -Math.PI / 2 + (2 * Math.PI * r / m);
+                    const angle = baseAngle + ringRot;
+                    const x = radius * Math.cos(angle);
+                    const y = radius * Math.sin(angle);
+                    
+                    points.push({ m, r, x, y, angle, baseAngle, coprime, gcd: g, modIndex });
+                }
+                
+                allModuliData.push({ m, radius, ringRot, points, modIndex });
+            }
+
+            // Draw r-to-r connections
+            if (showRtoR) {
+                for (let i = 0; i < allModuliData.length - 1; i++) {
+                    const mod1 = allModuliData[i];
+                    const mod2 = allModuliData[i + 1];
+                    
+                    mod1.points.forEach(p1 => {
+                        const p2 = mod2.points.find(p => p.r === p1.r && p.coprime);
+                        if (p2) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', p1.x);
+                            line.setAttribute('y1', p1.y);
+                            line.setAttribute('x2', p2.x);
+                            line.setAttribute('y2', p2.y);
+                            
+                            let color = '#00ffff';
+                            switch(connColorMode) {
+                                case 'bymod':
+                                    color = `hsl(${(p1.modIndex * 30) % 360}, 70%, 50%)`;
+                                    break;
+                                case 'solid':
+                                    color = '#58a6ff';
+                                    break;
+                                case 'rainbow':
+                                    color = `hsl(${(p1.r / p1.m * 360)}, 80%, 60%)`;
+                                    break;
+                            }
+                            
+                            line.setAttribute('stroke', color);
+                            line.setAttribute('stroke-width', 0.5);
+                            line.setAttribute('opacity', connOpacity);
+                            mainG.appendChild(line);
+                        }
+                    });
+                }
+            }
+
+            // Draw gap connections (r to r+2n)
+            if (showGapConn) {
+                allModuliData.forEach(modData => {
+                    modData.points.forEach(p1 => {
+                        if (!p1.coprime) return;
+                        
+                        const targetR = (p1.r + 2 * gapSize) % p1.m;
+                        const p2 = modData.points.find(p => p.r === targetR && p.coprime);
+                        
+                        if (p2) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', p1.x);
+                            line.setAttribute('y1', p1.y);
+                            line.setAttribute('x2', p2.x);
+                            line.setAttribute('y2', p2.y);
+                            
+                            let color = '#ffd700';
+                            switch(connColorMode) {
+                                case 'bygap':
+                                    color = `hsl(${(gapSize * 40) % 360}, 80%, 60%)`;
+                                    break;
+                                case 'bymod':
+                                    color = `hsl(${(p1.modIndex * 30) % 360}, 70%, 50%)`;
+                                    break;
+                                case 'solid':
+                                    color = '#ff0000';
+                                    break;
+                                case 'rainbow':
+                                    color = `hsl(${(p1.r / p1.m * 360)}, 80%, 60%)`;
+                                    break;
+                            }
+                            
+                            line.setAttribute('stroke', color);
+                            line.setAttribute('stroke-width', 0.8);
+                            line.setAttribute('opacity', connOpacity);
+                            mainG.appendChild(line);
+                        }
+                    });
+                });
+            }
+
+            // Draw all points
+            allModuliData.forEach(modData => {
+                modData.points.forEach(point => {
+                    const color = getPointColor(
+                        { ...point, ring: point.m, ringIndex: point.modIndex }, 
+                        point.m, 
+                        point.modIndex, 
+                        pointColorMode
+                    );
+                    const size = point.coprime ? pointSize : pointSize * 0.7;
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x);
+                    circle.setAttribute('cy', point.y);
+                    circle.setAttribute('r', size);
+                    circle.setAttribute('fill', color);
+                    circle.setAttribute('opacity', opacity);
+                    mainG.appendChild(circle);
+                });
+            });
+
+            svg.appendChild(mainG);
+        }
         // Update analysis panel
         function updateAnalysis() {
             const showAnalysis = document.getElementById('showAnalysis').checked;
@@ -1724,6 +1949,18 @@
             document.getElementById('ringRotation').value = value;
             document.getElementById('ringRotValue').textContent = value.toFixed(1);
             render();
+        });
+
+        document.getElementById('gapSize').addEventListener('input', (e) => {
+            document.getElementById('gapSizeValue').textContent = e.target.value;
+        });
+
+        document.getElementById('connOpacity').addEventListener('input', (e) => {
+            document.getElementById('connOpacityValue').textContent = e.target.value;
+        });
+
+        document.getElementById('ringSpacing').addEventListener('input', (e) => {
+            document.getElementById('ringSpacingValue').textContent = parseFloat(e.target.value).toFixed(1);
         });
 
         document.getElementById('fareyThickness').addEventListener('input', (e) => {
